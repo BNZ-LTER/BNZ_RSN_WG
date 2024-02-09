@@ -4,7 +4,7 @@ Working space for activities by the Regional Site Network Working Group
 
 
 
-Setup Notes from Tamara:
+Setup Notes from Tamara:  [notes by Jason]
 
 Some thoughts:
 
