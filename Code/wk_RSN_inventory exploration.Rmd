@@ -1,0 +1,351 @@
+---
+title: "BNZ RSN inventory"
+output: html_document
+date: "2023-10-12"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+rm(list=ls())
+
+library(dplyr)
+
+bnz <- read_csv("Data/working/BNZMasterSeries.csv")
+
+```
+
+#Determine how many sites in each year
+###2018 was the last year that most sites (91 out of 114) were inventoried
+### Sites were inventoried in 19 different years from 1989 to 2023
+
+```{r organizing}
+names(bnz)
+head(bnz)
+str(bnz)
+
+bnz$SPECIES <- toupper(bnz$SPECIES) 
+bnz$SITE <- toupper(bnz$SITE) 
+levels(as.factor(bnz$SPECIES))
+bnz$SPECIES <- gsub(" ", "", bnz$SPECIES)
+str(bnz)
+
+bnz$DBH=as.numeric(bnz$DBH)
+bnz$DBH.new <- replace(bnz$DBH, bnz$DBH<0, NA)
+bnz$DBH.new=as.numeric(bnz$DBH.new)
+
+bnz.sites=bnz%>%
+  group_by(YEAR) %>%
+  summarize(unique_types = n_distinct(SITE))
+
+n_distinct(bnz$SITE)
+n_distinct(bnz$YEAR)
+
+
+```
+
+
+## calcualte species specific density and basal in 2018
+```{r bnz}
+########live trees in 2018
+bnz.2018=bnz%>%
+  subset(YEAR==2018 & DA==1)
+
+
+########live trees in 2013
+bnz.2013=bnz%>%
+  subset(YEAR==2013&DA==1)
+
+######### merge 2018 and 2013 - keeping all 2018 and only unique from 2013
+library(data.table)
+bnz.new=unique(rbindlist(list(bnz.2018, bnz.2013)), by = c("SITE", "PLOT", "TREE", "SPECIES"))
+
+head(bnz.new)
+
+bnz.new=mutate(bnz.new, BA.tree = 3.142*(DBH.new/2)^2)
+
+str(bnz.new)
+bnz.new$SPECIES=as.factor(bnz.new$SPECIES)
+levels(bnz.new$SPECIES)
+
+
+bnz.new=bnz.new%>%
+  mutate(bio.tree=ifelse(SPECIES=="POPTRE", 134.1*(DBH.new)^2.26, 
+                        ifelse(SPECIES=="POPBAL", 133.71*(DBH.new)^2.29,  
+                               ifelse(SPECIES=="BETNEO", 164.18*(DBH.new)^2.29,  
+                                      ifelse(SPECIES=="PICMAR", 271.46*(DBH.new)^1.84, 
+                                             ifelse(SPECIES=="PICGLA", 96.77*(DBH.new)^2.4,
+                                                    ifelse(SPECIES=="PICEA"|SPECIES=="LARLAR", ((271.46*(DBH.new)^1.84)*0.5) + ((96.77*(DBH.new)^2.4)*0.5), NA)))))))
+                                      
+head(bnz.new)       
+
+
+########make sure it worked
+try=bnz.new%>%
+  group_by(YEAR)%>%
+  summarize(count=n())
+
+#remove trees that have NA for DBH.new, so that the NAs don't throw off our calculations
+bnz.new <- bnz.new[complete.cases(bnz.new$DBH.new), ]
+
+
+#############calculate plot density
+bnz.a=bnz.new%>%
+  group_by(SITE, PLOT, SPECIES)%>%
+  summarize(tree.num=n_distinct(TREE), 
+            density=tree.num/100, 
+            basal.area.tree=sum(BA.tree),
+            ba=basal.area.tree/100, 
+            biomass.area=sum(bio.tree),
+            bio=biomass.area/100)
+
+levels(as.factor(bnz.a$SPECIES))
+
+max(bnz.a$ba, na.rm=TRUE)
+min(bnz.a$ba, na.rm=TRUE)
+max(bnz.a$density, na.rm=TRUE)
+min(bnz.a$density, na.rm=TRUE)
+max(bnz.a$bio, na.rm=TRUE)
+min(bnz.a$bio, na.rm=TRUE)
+
+library(ggplot2)
+library(ggforce)
+head(bnz.a)
+
+
+
+#######get rid of species that are not species
+bnz.c=subset(bnz.a, SPECIES=="BETNEO"|SPECIES=="LARLAR"|SPECIES=="PICEA"|SPECIES=="PICGLA"|SPECIES=="PICMAR"|SPECIES=="POPBAL"|SPECIES=="POPTRE")
+
+#change sites to a factor
+levels(as.factor(bnz.c$SITE)) 
+
+#### plot density by sites and species - one page for 12 sites
+g=ggplot(bnz.c, aes(x=SPECIES, y=density, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free",ncol = 4, nrow = 4, page = 1)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=density, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free",ncol = 4, nrow = 4, page = 2)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=density, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free",ncol = 4, nrow = 4, page = 3)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=density, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free",ncol = 4, nrow = 4, page = 4)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=density, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free",ncol = 4, nrow = 4, page = 5)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=density, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free",ncol = 4, nrow = 4, page = 6)
+g=g+theme_bw()+geom_boxplot()
+g
+
+#####################
+#can do the same thing with basal area
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=ba, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 1)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=ba, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 2)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=ba, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 3)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=ba, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 4)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=ba, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 5)
+g=g+theme_bw()+geom_boxplot()
+g
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=ba, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 6)
+g=g+theme_bw()+geom_boxplot()
+g
+
+#########
+
+#####################
+#can do the same thing with biomass
+
+g=ggplot(bnz.c, aes(x=SPECIES, y=bio, fill=SPECIES))+facet_wrap_paginate(~ SITE, scales="free", ncol = 4, nrow = 4, page = 1)
+g=g+theme_bw()+geom_boxplot()
+g
+```
+
+```{r bnz}
+
+library(tidyr)
+names(bnz.c)
+head(bnz.c)
+
+bnz.b =bnz.c %>%  
+select(SITE,PLOT,SPECIES,tree.num, density, ba, bio)%>%  
+    pivot_wider(names_from = SPECIES, values_from = c(tree.num, density, ba, bio))
+
+names(bnz.b)
+
+bnz.d=bnz.b%>%
+  replace(is.na(.),0) %>% 
+  mutate(decid.dens=density_POPTRE+density_BETNEO+density_POPBAL, 
+         conif.dens=density_PICGLA+density_PICEA+density_PICMAR, 
+         decid.ba=ba_POPTRE+ba_BETNEO+ba_POPBAL, 
+         conif.ba=ba_PICGLA+ba_PICEA+ba_PICMAR, 
+         decid.bio=bio_POPTRE+bio_BETNEO+bio_POPBAL, 
+         conif.bio=bio_PICGLA+bio_PICEA+bio_PICMAR, 
+         rel.conif.dens=conif.dens/(conif.dens+decid.dens), 
+         rel.conif.bio=conif.bio/(conif.bio+decid.bio), 
+         rel.decid.dens=1-rel.conif.dens, 
+         rel.decid.bio=1-rel.conif.bio, 
+         D.Index=(rel.decid.dens+rel.decid.bio)/2, 
+         Class=ifelse(D.Index<0.33, "Spruce", 
+                      ifelse(D.Index>0.66, "Decid", "Mixed")))
+
+f=ggplot(bnz.d, aes(x=conif.dens, y=decid.dens, color=Class))+theme_bw()
+f= f+ labs(x="Coniferous Density (stems m-2)", y="Deciduous Density (stems m-2)")
+f=f + geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f
+
+
+f1=ggplot(bnz.d, aes(x=conif.ba, y=decid.ba, color=Class))+theme_bw()
+f1= f1+ labs(x="Coniferous Basal Area", y="Deciduous Basal Area")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f1
+
+f2=ggplot(bnz.d, aes(x=conif.bio, y=decid.bio,color=Class))+geom_point()+theme_bw()
+f2= f2+ labs(x="Coniferous Biomass (g m-2)", y="Deciduous Biomass (g m-2)")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f2
+
+names(bnz.d)
+f3=ggplot(bnz.d, aes(x=rel.decid.bio, y=rel.decid.dens, color=Class))+geom_point()+theme_bw()
+f3= f3+ labs(x="Relative Decid Biomass", y="Relative Deciduous Density")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f3
+
+library(ggpubr)
+f4=ggarrange(f, f1, f2, f3, nrow=2, ncol=2,common.legend = TRUE )
+f4
+```
+
+Summarize to site level instead of plot 
+Combine this site level data with the tree age data!!
+```{r bnz}
+
+bnz.d=as.data.frame(bnz.d)
+
+bnz.e=select(bnz.d, SITE, tree.num_PICMAR:D.Index)
+bnz.e=bnz.e%>%
+  group_by(SITE)%>%
+  summarize_all(mean)
+
+bnz.e=mutate(bnz.e, Class=ifelse(D.Index<0.33, "Spruce", 
+                      ifelse(D.Index>0.66, "Decid", "Mixed")))
+
+#save this is a working dataset as biomass and density on site level
+write_csv(bnz.e, file = "Data/working/rsn_bio_dens_bysite.csv")
+#then I do some changing of the code in my rsn_masterfile script
+#and we read in the new data that includes age
+bnz.f <- read_csv("Data/working/bio_dens_age_bysite.csv")
+bnz.f$ID <- "RSN"
+
+#read in cafi data
+cafi.b <- read_csv("Data/working/cafi.b.csv")
+cafi.b$ID <- "CAFI"
+
+#remove pesky NA
+bnz.f <- bnz.f[complete.cases(bnz.f$Class), ]
+
+#change biomass to kg
+bnz.f$decid.bio <- bnz.f$decid.bio/1000
+
+df <- bind_rows(cafi.b, bnz.f)
+df$ID_Class <- paste(df$ID, df$Class, sep = "_")
+
+
+#D.Index v age
+f=ggplot(bnz.f, aes(x=age_ave, y=D.Index, color=Class))+geom_point()+theme_bw()
+f= f+ labs(x="Stand Age", y="Deciduous Index")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f
+
+#edits
+f <- ggplot(bnz.f, aes(x = age_ave, y = D.Index, color = Class)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Stand Age", y = "Deciduous Index") +
+  geom_point(size = 3, aes(fill = Class, shape = Class)) +
+  scale_color_manual(values = c("gold1", "#77D153FF", "#443983FF")) +
+  scale_x_continuous(breaks = seq(0, 250, by = 10),
+                     limits = c(0, 250),
+                     labels = function(x) ifelse(x %% 50 == 0, as.character(x), ""))
+f
+
+
+#decid.bio v age
+f=ggplot(bnz.f, aes(x=age_ave, y=decid.bio, color=Class))+geom_point()+theme_bw()
+f= f+ labs(x="Stand Age", y="Deciduous Biomass (kg m-2)")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f
+
+#edits
+f <- ggplot(bnz.f, aes(x = age_ave, y = decid.bio, color = Class)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Stand Age", y = "Deciduous Biomass (kg m-2)") +
+  geom_point(size = 3, aes(fill = Class, shape = Class)) +
+  scale_color_manual(values = c("gold1", "#77D153FF", "#443983FF")) +
+  scale_x_continuous(breaks = seq(0, 250, by = 10),
+                     limits = c(0, 250),
+                     labels = function(x) ifelse(x %% 50 == 0, as.character(x), "")) +
+  scale_y_continuous(breaks = seq(0, 16, by = 4),  # Set breaks every 2 units
+                     limits = c(0, 16))  # Limiting the y-axis from 0 to 16
+f
+
+#decid.dens v age
+f=ggplot(bnz.f, aes(x=age_ave, y=decid.dens, color=Class))+geom_point()+theme_bw()
+f= f+ labs(x="Stand Age", y="Deciduous Density")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f
+
+#edits
+f <- ggplot(bnz.f, aes(x = age_ave, y = decid.dens, color = Class)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Stand Age", y = "Deciduous Density") +
+  geom_point(size = 3, aes(fill = Class, shape = Class)) +
+  scale_color_manual(values = c("gold1", "#77D153FF", "#443983FF")) +
+  scale_x_continuous(breaks = seq(0, 250, by = 10),  # Set breaks every 10 units
+                     limits = c(0, 250),  # Set x-axis limits
+                     expand = c(0, 0),  # Remove padding
+                     labels = function(x) ifelse(x %% 50 == 0, as.character(x), ""))  + # Show numbers every 50 units
+  scale_y_continuous(breaks = seq(0, 1, by = 0.25),  # Set breaks every 0.25 units
+                     limits = c(0, 1))  # Set y-axis limits
+f
+
+f=ggplot(bnz.e, aes(x=conif.dens, y=decid.dens, color=Class))+geom_point()+theme_bw()
+f= f+ labs(x="Coniferous Density (stems m-2)", y="Deciduous Density (stems m-2)")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f
+
+f1=ggplot(bnz.e, aes(x=conif.ba, y=decid.ba, color=Class))+geom_point()+theme_bw()
+f1= f1+ labs(x="Coniferous Basal Area", y="Deciduous Basal Area")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f1
+
+f2=ggplot(bnz.e, aes(x=conif.bio, y=decid.bio, color=Class))+geom_point()+theme_bw()
+f2= f2+ labs(x="Coniferous Biomass (g m-2)", y="Deciduous Biomass (g m-2)")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f2
+
+names(bnz.d)
+f3=ggplot(bnz.e, aes(x=rel.decid.bio, y=rel.decid.dens, color=Class))+geom_point()+theme_bw()
+f3= f3+ labs(x="Relative Decid Biomass", y="Relative Deciduous Density")+ geom_point(size=3,aes(fill=Class, shape=Class)) + scale_color_manual(values=c("gold1","#77D153FF", "#443983FF"))
+f3
+
+library(ggpubr)
+f4=ggarrange(f, f1, f2, f3, nrow=2, ncol=2, common.legend = T)
+f4
+
+
+```
