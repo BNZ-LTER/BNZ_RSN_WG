@@ -1,0 +1,19 @@
+site_pkey,prelimID,n_dd,w_dd,notes,surficial_geology,texture,ph,moist
+695,TKN0012,65.166788236,-147.89659572,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,4.3, subxeric
+696,TKN0013,65.165904884,-147.89642902,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,4.1, subxeric
+697,TKN0014,65.165038237,-147.89486221,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,4.5, subxeric-mesic
+698,TKN0015,65.154088402,-147.86562743,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty clay loam,4.7, mesic-subhygric
+699,TKN0016,65.157538436,-147.87409445,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,4.9, mesic
+700,TKN0022,64.996103954,-147.65549098,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,4.8, mesic
+701,TKN0023,64.996703925,-147.65749106,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,4.5, subxeric-mesic
+702,TKN0024,64.998087242,-147.65917452,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,didn't hit mineral,4.6, subxeric
+703,TKN0025,64.999403762,-147.66852473,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,sandy clay loam,3.9, subxeric
+704,TKN0026,64.999153722,-147.67105811,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,didn't hit mineral,4.7, subhygric
+705,TKN0031,64.61016356,-147.05407546,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,stabilized alluvium,sandy loam,6.2, subxeric
+706,TKN0032,64.313151166,-146.6890373,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,stabilized alluvium,silty loam,4.5, mesic
+707,TKN0033,64.318484031,-146.73012166,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,stabilized alluvium,silty loam,6, mesic-subhygric
+708,TKN0034,64.328300562,-146.74505608,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,stabilized alluvium,silty loam,6, mesic
+709,TKN0104,65.359597523,-146.67610736,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty clay loam,4.8, mesic-subhygric
+694,TKN0104c,65.348830721,-146.67118946,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,loamy silt,6.2, mesic
+710,TKN0104p,65.36198102,-146.66914094,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty loam,5.6, mesic-subhygric
+693,TKN0105,65.350497391,-146.67318968,Climate station site set up and used by Vladimir Romanovsky and Teresa Hollingsworth,loess,silty clay loam,5.3, mesic-subhygric
