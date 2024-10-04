@@ -8,6 +8,12 @@ cafi <- read_csv("Data/raw/CAFI_merge.csv")
 #remove all Kenai plots - we only want to work in the interior boreal
 cafi <- cafi[cafi$ecoregion != "MARINE WEST COAST FOREST", ]
 #this leaves us with 115 sites
+
+#let's save cafi coordinates into separate file rn
+cafi_coords <- cafi %>% 
+  select(!c(Region_PSP, biomass_kgM2, density_m2, decidBA, conifBA, scientific, surveyyr, ecoregion, ASPC, SLOP, SOMO, SOORCM, SOOICM, SOOECM, SOOACM, ELEV, DF))
+
+#ok, back to our usual
 #remove info that is unimportant to us rn
 cafi <- cafi %>% 
   select(!c(decidBA, conifBA, Longitude, Latitude, scientific, surveyyr, ecoregion, ASPC, SLOP, SOMO, SOORCM, SOOICM, SOOECM, SOOACM, ELEV, DF))
@@ -46,6 +52,30 @@ cafi.a =cafi %>%
 
 cafi.b = cafi.a %>%
   mutate(StdAge = case_when(StdAge == 0 ~ NA, TRUE~StdAge))
+
+#join the coordinates back in
+cafi.b <- cafi.b %>%
+  left_join(cafi_coords, by = "site") %>%
+  group_by(site, StdAge.x, Class) %>%
+  slice(1) %>%
+  ungroup()
+
+cafi.b %>% 
+  rename(StdAge = "StdAge.x") %>% 
+  select(site, Longitude, Latitude, StdAge, D.Index, Class) -> cafi.b
+
+##this is code from wk_RSN_inventory exploration. it changes cafi column names to be better merged with RSN data
+# #read in cafi data
+# cafi.b <- read_csv("Data/working/cafi.b.csv")
+# cafi.b %>% 
+#   mutate(ID = "CAFI",
+#          Class = tolower(Class)) %>% 
+#   rename(sitename = "site",
+#          age_ave = "StdAge", 
+#          d.index = "D.Index",
+#          class = "Class") %>% 
+#   select(ID, sitename, age_ave, d.index, class) -> cafi.c
+# cafi.c$sitename=as.character(cafi.c$sitename)
 
 #there are 56 plots with ages
 #D.Index v age

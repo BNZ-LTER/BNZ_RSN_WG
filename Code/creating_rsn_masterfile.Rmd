@@ -114,9 +114,10 @@ Looking at sol and org_depth, there are some differences in depth and they cover
 We have some unarchived soil data processed in Guelph/Alaska. Perhaps they can help fill in the gaps for the sites we are missing.
 
 ```{r cleaning guelph data, include = FALSE}
+#this is to check if the data we have is useful to the RSN dataset
 #read in short_core_inventory
 short_cores <- read_csv("Data/raw/short_core_inventory.csv")
-#this data comes from data shared by Catherine Dielman from Guelph
+#this data comes from data shared by Catherine Dieleman from Guelph
 names(short_cores)
 
 n_distinct(short_cores$Site)
@@ -138,7 +139,7 @@ setdiff(values_soils$Site, values_master$prelimID)
 
 ```
 
-```{r sol from guelph/ak}
+```{r sol from guelph/ak, include = FALSE}
 #let's do some cleaning up of the datafile
 
 names(short_cores)
@@ -159,12 +160,12 @@ short_cores_sum <- short_cores %>%
   summarize(org_depth_ave = round(mean(org_depth), 1))
 
 #join the two datasets
+#saved as test because we will not be adding to rsn_master
 test <- full_join(rsn_master, short_cores_sum, by = "prelimID")
 test <- select(test, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity, ph, sol, org_depth_ave.x, org_depth_ave.y, treeden, treeba, seedlingde, age, burn_year)
 
 ```
-Upon adding the organic layer depth data from the short_core_inventory from Guelph/AK to the rsn_master, it looks like short_core_inv data includes data for the same sites as 606. The numbers are remarkably similar. So short_core_inv cannot give us anything new. You'll notice that I did not save the join in rsn_master, and instead saved it as a test. We are not going to use the short core data at all.
-
+Upon adding the organic layer depth data from the short_core_inventory from Guelph/AK to the rsn_master, it looks like short_core_inv data includes data for the same sites as 606. The numbers are remarkably similar. So short_core_inv cannot give us anything new. We are not going to use the short core data at all.
 
 Returning to what I mentioned earlier about Jamie trusting the org_depth_ave from 606 over the sol from 737, let's make one complete org_depth column
 
@@ -249,7 +250,7 @@ pf_cores_sol %>%
   group_by(prelimID) %>%
   summarize(org_depth_ave = round(mean(org_depth), 1)) -> pf_cores_sol
 
-#UPc4 here is not a prelimID, but a sitename. let's change it to it's prelimID for ease of joining with the rsn_master
+#UPC4 here is not a prelimID, but a sitename. let's change it to it's prelimID for ease of joining with the rsn_master
 pf_cores_sol %>% 
   mutate(prelimID = case_when(
     prelimID == "UP4C" ~ "TKN0110",
@@ -259,7 +260,7 @@ pf_cores_sol %>%
 rsn_master <- full_join(rsn_master, pf_cores_sol, by = "prelimID")
 rsn_master %>%
   mutate(org_depth = coalesce(org_depth_ave, org_depth)) -> rsn_master
-#this code combines the two org_depth columns we have. The permafrost data fill in the gaps incredibly, and the only site for which we have two sets of #s if DCY12. The code preferentially chooses the pf org_depth, which is 18.1 vs 11.6 in the old. We can fix this later if we want to
+#this code combines the two org_depth columns we have. the permafrost data fill in the gaps incredibly, and the only site for which we have two sets of #s if DCY12. The code preferentially chooses the pf org_depth, which is 18.1 vs 11.6 in the old. We can fix this later if we want to
 
 rsn_master <- select(rsn_master, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity, ph, org_depth, treeden, treeba, seedlingde, age, burn_year)
 #we are now only missing 12 sites.
@@ -268,7 +269,6 @@ rsn_master <- select(rsn_master, ecoregion, sitename, prelimID, n_dd, w_dd, slop
 ```
 The permafrost cores processed in Alaska/Guelph filled in quite a few of our gaps. We only have 12 sites without organic depth. Some of these are TKN sites, so let's see if we can pull anything from Teresa's data. 
 
-
 ```{r adding org_depth from Teresas mature sites}
 #adding org_depth from Teresa's mature sites
 ```
@@ -276,90 +276,13 @@ The permafrost cores processed in Alaska/Guelph filled in quite a few of our gap
 
 This completes our soil portion of the masterfile. 
 
-## pH
-### TKN
-We have pH for 30 RSN sites. We would like to fill these gaps. The first step will be adding pH data from Teresa's TKN mature black spruce sites
-```{r cleaning TKN site level data, include = FALSE}
-#read in tkn_cords
-tkn_cords <- read_csv("Data/raw/TKN_SiteCords.csv")
-#this data comes from data shared by Catherine Dielman from Guelph
-names(tkn_cords)
-head(tkn_cords)
-
-#we are mainly interested in the data within the site_description column. let's keep only the rows that have data in the column
-tkn_cords <- tkn_cords %>%
-  filter(!is.na(site_description)) %>% 
-  separate(site_description, into = paste0("site_description", 1:5), sep = "(?<=[.!?])\\s", extra = "merge", fill = "right") %>% 
-  #the sep text is something chatGPT came up with to avoid separating at the pH decimal point
-    #let's rename the columns
-  rename(notes = site_description1, 
-         surficial_geology = site_description2, 
-         texture = site_description3, 
-         ph = site_description4, 
-         moist = site_description5,
-         prelimID = site_id) %>% 
-  mutate(
-    notes = str_remove(str_remove(notes, ".*: "), "\\.$"),  
-    # Remove everything before the semicolon and the last period
-    surficial_geology = str_remove(str_remove(surficial_geology, ".*: "), "\\.$"),
-    texture = str_remove(str_remove(texture, ".*: "), "\\.$"),
-    ph = str_remove(str_remove(ph, ".*: "), "\\.$"),
-    moist = str_remove(str_remove(moist, ".*: "), "\\.$"),
-    moist = str_replace(moist, " to ", "-"))
-
-#let's see how this data compares to rsn_master
-
-n_distinct(tkn_cords$prelimID)
-#there are 18 sites in tkn_cords (that contain pH, texture, moisture data)
-
-#compare unique values between tkn_cords and rsn_master
-#note that tkn uses prelimIDs
-values_tkn <- tkn_cords %>% distinct(prelimID)
-values_master <- rsn_master %>% distinct(prelimID)
-
-#find sites that are in both tkn and rsn_master
-common_tkn <- intersect(values_tkn$prelimID, values_master$prelimID)
-# 3 sites: "TKN0012" "TKN0015" "TKN0024"
-#not a ton of help, unfortunately
-
-#save in working data folder
-write_csv(tkn_cords, file = "Data/working/tkn_site_level_data.csv")
-
-```
-
-
-I have cleaned up the TKN_SiteCords dataset to keep only the sites that have data on ph, mositure, and texture. The other sites only included site name and coordinates. I have saved it as new file in the working data folder and it is called "tkn_site_level_data". Now we can merge pH data for shared sites between tkn_site_lvel_data and rsn_master.
-
-
-```{r merge tkn_site_levle_data and rsn_master}
-#this will give us pH for 3 TKN sites in the rsn_master file
-
-#first let's limit ourselves to just the columns in tkn we want to merge, and the 3 sites we want to keep
-tkn_cords <- tkn_cords %>% 
-  select(prelimID, ph) %>% 
-  filter(prelimID %in% common_tkn) %>% 
-  mutate(ph = as.double(ph))
-
-#let's fix missing pHs in rsn_master to NAs before we merge
-rsn_master <- rsn_master %>%
-  mutate(ph = case_when(ph == 0 ~ NA, TRUE ~ ph))
-
-#then we merge - this will make a duplicate pH column in rsn_master
-rsn_master <- full_join(rsn_master, tkn_cords, by = "prelimID")
-
-#so let's combine the .x and .y columns
-rsn_master <- rsn_master %>%
-  mutate(ph = coalesce(ph.x, ph.y, NA)) %>%
-  select(ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity, ph, org_depth, treeden, treeba, seedlingde, age, burn_year)
-
-```
-
+## Site Level Data
 ### JFSP
 We can perhaps pull some site level data for the young sites from jfsp_sitedata (file 342).
 
-We could potentially use: slope, aspect, elevation, CBI.total( = severitty), moist.2008( = moist), pH, slope.pos( = topo), resid.org( = org_depth)
-```{r adding site level data fro jfsp data, message = FALSE}
-#read in 342_JFSP_sitedata_2011
+We could potentially use: slope, aspect, elevation, CBI.total( = severity), moist.2008( = moist), pH, slope.pos( = topo), resid.org( = org_depth)
+```{r adding site level data from jfsp data, message = FALSE}
+#read in 342_JFSP_sitedata_2011. this is archived with the BNZ
 jfsp_sitedata <- read_csv("Data/raw/342_JFSP_sitedata_2011.csv")
 
 names(jfsp_sitedata)
@@ -413,22 +336,60 @@ rsn_master %>%
 rsn_master <- select(rsn_master, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity, ph, org_depth, treeden, treeba, seedlingde, age, burn_year)
 
 ```
-This has filled out site level data for our young sites. Now we are only missing mature sites. 
+This has filled out site level data for our young sites. Now we are only missing mature sites. Teresa has much of this site level data for her sites. This data is unarchived and shared by Teresa in personal correspondence.
 
 ```{r adding site level data from Teresas mature sites}
+#these data were cherry-picked by Teresa to fill our gaps
+###it might be nice to have the data for all tkn sites, rather than this subsample. we don't need it, per se, but it might be nice to have as a cross reference
+tkn_site_level <- read_csv("Data/working/tknforrsn_enviro.csv")
 
+names(tkn_site_level)
+head(tkn_site_level)
+
+#select just what we need
+tkn_site_level %>% 
+  select(Site, "slope (deg)", aspect, "elevation (m)", "site moisture", "topographic position", "1:1 pH", "total O (cm)") -> tkn_site_level
+
+#rename columns and data categories to match our current data
+tkn_site_level %>%
+  rename(slope = "slope (deg)",
+         elevation = "elevation (m)",
+         moist = "site moisture",
+         topo = "topographic position",
+         ph = "1:1 pH",
+         org_depth = "total O (cm)",
+         prelimID = "Site") %>% 
+   mutate(moist = case_when(moist == 3 ~ "xeric", moist == 4 ~ "subxeric", moist == 5 ~ "subxeric-mesic", moist == 6 ~ "mesic",
+                            moist == 7 ~ "mesic-subhygric", moist == 8 ~ "subhygric", TRUE ~ as.character(moist))) %>%
+  mutate(topo = case_when(topo == 1 ~ "summit", topo == 3 ~ "side slope", topo == 4 ~ "toe slope", topo == 5 ~ "valley bottom",
+                            topo == 9 ~ "lowland", TRUE ~ as.character(topo))) -> tkn_site_level
+
+#let's join our two datasets
+rsn_master <- full_join(rsn_master, tkn_site_level, by = "prelimID")
+
+#then let's combine the columns that are shared
+rsn_master %>%
+  mutate(slope = coalesce(slope.y, slope.x),
+         elevation = coalesce(elevation.y, elevation.x),
+         topo = coalesce(topo.y, topo.x),
+         aspect = coalesce(aspect.y, aspect.x),
+         moist = coalesce(moist.y, moist.x),
+         org_depth = coalesce(org_depth.y, org_depth.x),
+         ph = coalesce(ph.y, ph.x)) -> rsn_master
+
+rsn_master <- select(rsn_master, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity, ph, org_depth, treeden, treeba, seedlingde, age, burn_year)
 
 ```
-
+We need to clean up the remaining unknowns. pH needs to be changed to NAs
 
 
 ## Age
-This is age data from tree cores and cookies sourced from various archived and unarchived files. We want to find stand age from cookie/core for all RSN sites, excluding the 2004 young sites for which we will use derived age.
+This is age data from tree cores and cookies sourced from various archived and unarchived files. We want to find stand age from cookie/core for all RSN sites, excluding the 2004 young sites for which we will use derived age and potentially a few intermediate sites that are also categorized by last disturbance.
 
-First let's pull in the unarchived tree core/cookie data we have. Jamie shared these data with us; they are the missing age data from Unarchived:NewSiteNetwork_Complete. We have two datasets - one from the original nsn_tree_cores file and one from 
-Jamie that has the missing age data (tree_age). We should be using just the tree_age dataset.
+First let's pull in the unarchived tree core/cookie data we have. Jamie shared these data with us. There are seveal datasets that are related to this, but we should be using just the tree_age dataset which has the most data available.
 
 ```{r age cleaning, include=FALSE, message = FALSE}
+#check nsn_tree_cores and tree_age to check which dataset we should be using
 tree_age <- read_csv("Data/raw/tree_age.csv")
 nsn_tree_cores <- read_csv("Data/raw/nsn_tree_cores.csv")
 
@@ -451,8 +412,6 @@ tree_age <- tree_age %>%
   rename(cohort = "Cohort_#", tree_num = "Tree_#", core_ht = "Ht_of_Core_(cm)", dch = "DCH_(cm)", dbh = "DBH_(cm)", sample_type = "Cookie/Core?", fire_scar = "Fire_Scar?", times_counted = "Times_Counted?", field_notes = "Feild_Notes")
 
 nsn_tree_cores <- select(nsn_tree_cores, Date, Fire_Name, Site_Name, Observers, Weather, cohort, Species, tree_num, core_ht, dch, dbh, sample_type, Condition_of_Core, fire_scar, Age, Additional_Notes)
-
-####
 
 #we have a different number of rows in these two datasets - let's see what's missing
 #first let's make a unique id for both of these
@@ -494,7 +453,7 @@ Checking tree_age against rsn_master, we can tell that there are just 28 sites t
 #first let's check that all of the sites here are RSN sites
 #find common unique_ids between the two datasets
 common_rsn <- intersect(tree_age$Site_Name, rsn_master$prelimID)
-#we have 28 rsn sites in tree_age - could the missing 12 be because of alterntaive prelimIDs?
+#we have 28 rsn sites in tree_age - could the missing 12 be because of alternative prelimIDs?
 
 #find values in Site_Name in tree_age that are not in master
 unique_to_tree_age <- setdiff(tree_age$Site_Name, rsn_master$prelimID)
@@ -579,12 +538,14 @@ tree_age_stats <- select(tree_age_site, sitename, age_ave, age_min, age_max, age
 rsn_master <- full_join(rsn_master, tree_age_stats, by = "sitename")
 
 #this gives us ages for 28 of the 93 rsn sites, and looking at the data it seems like they're mostly intermediate
-#we need to choose which number we want to represent the age
+####we need to choose which number we want to represent the age
 
 ```
 
 ### Adding age from TKN sites
 These data are a bit messy, but I have chosen to leave the process visible so that we can follow along with how the raw data changes to data that can be used by us.
+
+Need to check with Teresa how her age is calculated!
 ```{r adding age from TKN sites, message = FALSE, warning = FALSE}
 #now let's add age for mature sites from Teresa's data
 tkn_age <- read_csv("Data/raw/139_treecores_rings.csv")
@@ -639,7 +600,7 @@ tkn_age_site <- tkn_age_site %>%
 tkn_age_site <- select(tkn_age_site, sitename, tree1, tree2, tree3, tree4, tree5, tree6)
 
 #now we can create summary stats
-#we will again use out current year so that the ages are correct as this dataset ages
+#we will again use our current year so that the ages are correct as this dataset ages
 #average stand age
 tkn_age_site$age_ave <- rowMeans(tkn_age_site[2:7], na.rm = TRUE)
 tkn_age_site$age_ave <- current_year - tkn_age_site$age_ave
@@ -669,18 +630,16 @@ age_data <- full_join(age_data, tkn_age_stats, by = "sitename")
 age_data <- age_data %>%
   mutate(age_ave = coalesce(age_ave.x, age_ave.y), age_min = coalesce(age_min.x, age_min.y), 
          age_max = coalesce(age_max.x, age_max.y), age_median = coalesce(age_median.x, age_median.y)) %>%
-  select(-starts_with(c("age_ave.", "age_min.", "age_max.", "age_median.")))  # Remove duplicated columns
-
-#this concludes the tkn section of age
+  select(-starts_with(c("age_ave.", "age_min.", "age_max.", "age_median.")))  # remove duplicated columns
 
 ```
-We have added ages for 18 mature sites that are colocated with Teresa's plots
+We have added ages for 18 mature sites that are colocated with Teresa's plots.
 
 ### Derived ages
-Next we'll make a column of derived ages from last disturbance (fire) for each site. We will only use these ages for young sites.
+Next we'll make a column of derived ages from last disturbance (fire) for each site. We will only use these ages for young sites and a few intermediate sites.
 ```{r derived ages for young sites}
-#let's add a column - all of the current ages are gleaned from cores/cookies, and all other ages will be derived 
-#from last disturbance
+
+#let's add a column - all of the current ages are gleaned from cores/cookies, and all other ages will be derived from last disturbance
 age_data <- age_data %>%
   mutate(age_source = ifelse(is.na(age_ave), "disturbance", "core"))
 
@@ -694,20 +653,47 @@ rsn_master <- full_join(rsn_master, age_data, by = "sitename")
 rsn_master <- rsn_master %>%
   mutate(derived_age = current_year - burn_year)
 
-#we are only going to use derived age for young sites, since we can confirm the last disturbance
+#we are going to use derived age for young sites, since we can confirm the last disturbance
 #there are 26 sites from 2004, plus 4 other young sites
-rsn_master = rsn_master %>%
-  mutate(age_ave = case_when(age == "young" ~ derived_age, TRUE~age_ave), age_min = case_when(age == "young" ~ derived_age, TRUE~age_min),
-         age_max = case_when(age == "young" ~ derived_age, TRUE~age_max), age_median = case_when(age == "young" ~ derived_age, TRUE~age_median)) 
+#now we have "confirmed" ages for 76 rsn sites
+rsn_master %>%
+  mutate(age_ave = case_when(age == "young" ~ derived_age, TRUE~age_ave), age_min = case_when(age == "young" ~ derived_age, TRUE~age_min), age_max = case_when(age == "young" ~ derived_age, TRUE~age_max), age_median = case_when(age == "young" ~ derived_age, TRUE~age_median)) -> rsn_master
+
+#we are also going to use derived ages for a few of the intermediate sites, particularly from sites GS and LG.
+#there are 5 sites in total
+rsn_master %>%
+  mutate(
+    age_ave = case_when(is.na(age_ave) & age == "intermediate" ~ derived_age, TRUE ~ age_ave),
+    age_min = case_when(is.na(age_min) & age == "intermediate" ~ derived_age, TRUE ~ age_min),
+    age_max = case_when(is.na(age_max) & age == "intermediate" ~ derived_age, TRUE ~ age_max),
+    age_median = case_when(is.na(age_median) & age == "intermediate" ~ derived_age, TRUE ~ age_median)) -> rsn_master
+
+#TKN0131 and TKN0131L are colocated, though in a different moisture class. Jamie believes that we could use the same age for 131L as we have for 131.
+rsn_master %>%
+  mutate(
+    age_ave = ifelse(prelimID == "TKN0131L", rsn_master$age_ave[rsn_master$prelimID == "TKN0131"], age_ave),
+    age_min = ifelse(prelimID == "TKN0131L", rsn_master$age_min[rsn_master$prelimID == "TKN0131"], age_min),
+    age_max = ifelse(prelimID == "TKN0131L", rsn_master$age_max[rsn_master$prelimID == "TKN0131"], age_max),
+    age_median = ifelse(prelimID == "TKN0131L", rsn_master$age_median[rsn_master$prelimID == "TKN0131"], age_median),
+    age_source = ifelse(prelimID == "TKN0131L", "colocated", age_source)) -> rsn_master
+
+#we now have ages for 82 sites. We are missing 11 mature sites. let's make a quick list of these for Jamie to cross-reference so that he can obtain cores/disks from them soon.
+rsn_na_age <- rsn_master[is.na(rsn_master$age_ave), ]
+
+#let's save these for sharing
+write_csv(rsn_na_age, file = "Data/working/rsn_na_age.csv")
 
 ```
-We now have ages for 76 sites. We are missing 12 mature and 5 intermediate. From speaking with Jamie, the mature sites are missing ages from core/cookie data. The leftover intermediate sites are from Heather Alexander's data, and age was derived from disturbance.
+We now have ages for 82 sites. We are missing 11 mature sites. From speaking with Jamie, the mature sites are missing ages from core/cookie data. He collected cores/disks from soms of these sites summer 2024. The derived age intermediate sites are from Heather Alexander's data.
 
 This concludes the age portion of our dataset. We still need to choose which age metric we wish to use!
 
 ## Deciduous density and biomass
-```{r tree densitym, message = FALSE}
-#we're using an output of Xanthe's with biomass and density already calculated by site
+
+We want to add data for deciduous index, density, and biomass. These data are calculated using raw data from the (unarchived?) BNZ LTER tree inventory. 
+```{r tree density, message = FALSE}
+#we're using an output of Xanthe's with biomass and density already calculated by site. she was using working data from Spencer, using data from the 2018 inventory
+###should we recalculate this based on the archived version of these data??
 tree_inv <- read_csv("Data/working/rsn_bio_dens_bysite.csv")
 names(tree_inv)
 head(tree_inv)
@@ -728,23 +714,82 @@ tree_inv <- tree_inv[tree_inv$SITE %in% common_rsn, ]
 decid_index <- select(tree_inv, SITE, decid.bio, decid.dens, D.Index, Class)
 
 decid_index %>% 
-  #rename columns for clairty
+  #rename columns for clarity
   rename(sitename = SITE,
          d.index = D.Index,
          class = Class) %>% 
+         #decid_bio = decid.bio,
+         #decid_dens = decid.dens) %>% 
   #make class data lower case
   mutate(class = tolower(class)) -> decid_index
 
 #now let's join this to the master_rsn
 rsn_master <- full_join(rsn_master, decid_index, by = "sitename")
-rsn_master <- select(rsn_master, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity,ph, org_depth, treeden, treeba, seedlingde, burn_year, age, class, decid.bio, decid.dens, d.index)
+rsn_master <- select(rsn_master, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity, ph, org_depth, treeden, treeba, seedlingde, burn_year, age, age_ave, age_source, class, decid.bio, decid.dens, d.index)
+
+```
+For current gap-filling purposes we are using jfsp data for deciduous biomass and index. ideally after the 2023 and 2024 inventory data are processed, they can replace the entirety of the 2018 derived data. tbd
+```{r adding d_index for jfsp sites}
+#so we're missing some d_index data from young jfsp sites. these missing sites should be filled after the inventory is done in 2024. in the meantime, we can can add d.index from data we got from anastasia. this should be a temporary measure.
+#I will save these data as rsn_master.a, so that we can keep them separate from the "true"" data
+
+#read in jfsp data from anastasia
+jfsp_dindex <- read_csv("Data/working/JFSP.sample.inventory.csv")
+
+jfsp_dindex %>%
+  mutate(traj.20 = tolower(traj.20),
+         traj.20 = case_when(traj.20 == "deciduous" ~ "decid", TRUE ~ traj.20)) %>% 
+  #rename columns for good joining
+  rename(class = "traj.20",
+         d.index = "decid.index",
+         prelimID = "site") %>% 
+  select(prelimID, d.index, class)-> jfsp_dindex
+
+values_jfsp <- jfsp_dindex %>% distinct(prelimID)
+values_rsn <- rsn_master %>% distinct(prelimID)
+common_jfsp_dindex <- intersect(values_jfsp$prelimID, values_rsn$prelimID)
+
+jfsp_dindex %>% 
+  filter((prelimID %in% common_jfsp_dindex)) -> jfsp_dindex
+
+#let's change the one site to a spruce, which is what it's shown as in the rsn data
+jfsp_dindex %>% 
+mutate(class = case_when(class == "open" ~ "spruce", TRUE ~ class)) -> jfsp_dindex
+
+rsn_master.a <- full_join(rsn_master, jfsp_dindex, by = "prelimID")
+
+rsn_master.a <- rsn_master.a %>%
+  mutate(d.index = coalesce(d.index.y, d.index.x), class = coalesce(class.y, class.x)) %>%
+  select(-starts_with(c("d.index.", "class.")))  # Remove duplicated columns
+
+rsn_master.a <- select(rsn_master.a, ecoregion, sitename, prelimID, n_dd, w_dd, slope, aspect, elevation, canopy_typ, topo, moist, severity,ph, org_depth, treeden, treeba, seedlingde, burn_year, age, age_ave, age_source, class, decid.bio, decid.dens, d.index)
+
+#now we have 5 remaining sites that are missing d.index. 4 of them are young, and one is mature. we can make some assumptions based on the site catalog about the class of these sites
+rsn_master.a %>% 
+mutate(d.index = case_when(sitename == "DCM1" ~ 1.000, sitename == "FP5C" ~ 1.000, 
+                           sitename == "DCY14" ~ 1.000, sitename == "HR1A" ~ 1.000, 
+                           sitename == "SL1B" ~ 1.000, TRUE ~ d.index)) -> rsn_master.a
+
+#let's give these an associated class
+rsn_master.a %>% 
+  mutate(class=ifelse(d.index<0.33, "spruce", ifelse(d.index>0.66, "decid", "mixed"))) -> rsn_master.a
+
+#now let's make some assumptions for the missing ages
+#except for TKN0131L which Jamie says can be compared to TKN0131, we should probably just use the derived ages
+#check this for DCM1: https://www.lter.uaf.edu/data/site-detail/id/463
+rsn_master.a %>% 
+mutate(age_ave = case_when(prelimID == "TKN0131L" ~ 185, sitename == "BCEFM2" ~ 90, sitename == "BDM1" ~ 90, 
+                           sitename == "DCM1" ~ 90, sitename == "FP5A" ~ 200, #this age is taken from the site catalog
+                           sitename == "FP5D" ~ 90, sitename == "NRM1" ~ 90, sitename == "NRM2" ~ 90, 
+                           sitename == "TRM2" ~ 90, sitename == "TRM3" ~ 90, 
+                           sitename == "WCM1" ~ 90, sitename == "WCM2" ~ 90, TRUE ~ age_ave)) -> rsn_master.a
 
 #for use in making figures, let's keep age, decid.bio, decid.dens, D.Index and class
-bio_dens_age_bysite <- select(rsn_master, sitename, age, decid.bio, decid.dens, d.index, class)
+bio_dens_age_bysite <- select(rsn_master.a, sitename, n_dd, w_dd, age, age_ave, decid.bio, decid.dens, d.index, class)
 
 #temporarily write this in to share with folks
-write_csv(bio_dens_age_bysite, file = "Data/working/bio_dens_age_bysite.csv")
-#write_csv(rsn_master, file = "Data/working/rsn_master_031924.csv")
+#write_csv(bio_dens_age_bysite, file = "Data/working/bio_dens_age_bysite.csv")
+#write_csv(rsn_master, file = "Data/working/rsn_master_062424.csv")
 
 ```
 

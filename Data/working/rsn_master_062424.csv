@@ -1,0 +1,94 @@
+ecoregion,sitename,prelimID,n_dd,w_dd,slope,aspect,elevation,canopy_typ,topo,moist,severity,ph,org_depth,treeden,treeba,seedlingde,burn_year,age,age_ave,age_source,class,decid.bio,decid.dens,d.index
+Yukon-Tanana Uplands,BCEFM2,Apex Beta,64.69516,-148.32324,0,0,141,black spruce,NA,subhygric,NA,0,135.2,17909.09,2275,2.64,1930,mature,NA,disturbance,spruce,7.6628285832946625,8.333333333333334e-4,0.00527729287807882
+Ray Mountains,BDI1,BD-6,65.063454,-150.403119,5,193,241,birch,shoulder,subxeric,NA,5.79,7,6258.33,28.06,22636.36,1969,intermediate,48,core,decid,12076.252798019575,0.6091666666666666,0.9741780643205136
+Ray Mountains,BDI2,BD-10,65.070412,-150.368877,4,209,254,birch,shoulder,subxeric-mesic,NA,5.71,8.8,8791.67,16.71,8363.64,1969,intermediate,54,core,decid,7815.11774646122,0.785,0.8762626351952574
+Ray Mountains,BDI3,BD-9,65.073548,-150.349093,15,199,290,aspen,side slope,subxeric,NA,5.08,4.3,6625,11.93,6772.73,1969,intermediate,53,core,mixed,2387.3504455660764,0.3525,0.5254483296567137
+Ray Mountains,BDI4,BD-11,65.078379,-150.325606,8,60,203,aspen,side slope,subxeric,NA,4.85,6.3,8691.67,20.6,11772.73,1969,intermediate,47,core,decid,6367.575255270118,0.835,0.9456270197759146
+Ray Mountains,BDI5,BD-7,65.095197,-150.282723,0,358,145,aspen,lowland,mesic,NA,5.84,3,2866.67,5.12,18954.55,1969,intermediate,53,core,mixed,581.7144842997773,0.0625,0.3774750102779864
+Ray Mountains,BDI6,BD-5,65.10084,-150.269876,0,0,146,black spruce,lowland,subhygric,NA,6.48,55.5,66.67,0.06,35954.55,1969,intermediate,55,core,spruce,7.318294394568173,0.00166666666666666,0.1030011346604051
+Ray Mountains,BDI7,BD-2,65.161836,-150.063616,6,195,358,birch,side slope,subxeric-mesic,NA,5.53,9.1,7975,16.92,21681.82,1969,intermediate,52,core,decid,7177.024894881129,0.8575,0.9940473670166432
+Ray Mountains,BDI8,BD-1,65.163552,-150.049912,8,203,389,birch,side slope,subxeric-mesic,NA,5.61,9.5,7783.33,10.97,24681.82,1969,intermediate,53,core,mixed,2836.834139691231,0.435,0.5312422849812591
+Ray Mountains,BDM1,BD69T2,65.15799,-150.13574,0,0,217,black spruce,NA,mesic,NA,0,27,22818.18,3783.33,7.15,1930,mature,NA,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,BFY1,BF71,65.119979,-147.429158,4,55,500,hardwood,upper slope,subxeric,2,4.1,6.3,33.33,0.02,37272.73,2004,young,20,disturbance,decid,77.73339398017995,0.03375,1
+Yukon-Tanana Uplands,BFY10,BF73,65.118669,-147.449411,11,347,445,mixed,upper slope,subxeric-mesic,2,3.7,8.1,0,0,16045.45,2004,young,20,disturbance,decid,52.375614399352315,0.02,1
+Yukon-Tanana Uplands,BFY11,BF82,65.148476,-147.471686,13,280,260,birch,middle slope,subxeric,3,3.5,4,1516.67,0.99,162545.45,2004,young,20,disturbance,decid,2109.998969961316,0.8491666666666666,0.9974503216336992
+Yukon-Tanana Uplands,BFY12,BF83,65.147741,-147.470284,15,260,260,birch,upper slope,subxeric,2,6.4,5.1,583.33,0.36,166681.82,2004,young,20,disturbance,decid,1062.1804380873446,0.46,1
+Yukon-Tanana Uplands,BFY13,BF99,65.143817,-147.460553,12,170,280,birch,NA,subxeric-mesic,3,0,5.8,525,0.32,225409.09,2004,young,20,disturbance,decid,2079.744224328777,0.8216666666666667,1
+Yukon-Tanana Uplands,BFY4,BF81,65.14981,-147.47274,9,272,260,birch,middle slope,subxeric-mesic,3,4.9,4.2,5491.67,3.97,155363.64,2004,young,20,disturbance,decid,4048.34217515931,1.2466666666666666,1
+Yukon-Tanana Uplands,BFY6,BF77,65.130069,-147.477168,6,267,205,birch,flat,mesic,2,3.7,6.3,25,0.01,136045.45,2004,young,20,disturbance,decid,330.91400092440085,0.16333333333333333,1
+Yukon-Tanana Uplands,BFY7,BF84,65.153652,-147.47723,4,258,240,black spruce,toe slope,mesic-subhygric,1,4.8,25.9,41.67,0.04,73818.18,2004,young,20,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,BFY8,BF61,65.349339,-146.667829,1,185,695,black spruce,flat,mesic,1,4.9,20.3,0,0,1181.82,2004,young,20,disturbance,NA,NA,NA,NA
+Yukon-Tanana Uplands,BFY9,BF63,65.353058,-146.675377,10,170,770,black spruce,upper slope,subxeric-mesic,1,4.6,8.9,183.33,0.5,90.91,2004,young,20,disturbance,spruce,0,0,0
+Ray Mountains,DCM1,Dalton,66.240395,-150.312493,6,294,485,black spruce,NA,mesic,NA,0,27.7,3545.45,1675,7.92,1930,mature,NA,disturbance,NA,NA,NA,NA
+Ray Mountains,DCY1,DC54,65.910596,-149.77952,2,215,135,black spruce,flat,subxeric-mesic,1,6.6,18.3,0,0,54590.91,2004,young,20,disturbance,NA,NA,NA,NA
+Ray Mountains,DCY10,DC37,66.207444,-150.236443,3,75,390,birch,flat,mesic,3,5.6,2.6,0,0,73318.18,2004,young,20,disturbance,NA,NA,NA,NA
+Ray Mountains,DCY12,DC33,66.265542,-150.333539,4,355,520,black spruce,middle slope,subxeric-mesic,1,3.7,18.1,133.33,0.22,4000,2004,young,20,disturbance,spruce,0,0,0
+Ray Mountains,DCY13,DC41,66.15537,-150.184437,0,90,270,mixed,flat,mesic-subhygric,1,5.6,6.8,0,0,65000,2004,young,20,disturbance,decid,22.202318594264984,0.0125,1
+Ray Mountains,DCY14,DC47,66.120336,-150.1632,0,90,170,black spruce,flat,subhygric,1,5,62.9,0,0,20318.18,2004,young,20,disturbance,NA,NA,NA,NA
+Ray Mountains,DCY15,DC48,66.109119,-150.155465,1,104,215,aspen,upper slope,subxeric-mesic,3,4.1,1.3,416.67,0.28,35590.91,2004,young,20,disturbance,decid,219.48159362588856,0.10833333333333334,1
+Ray Mountains,DCY16,DC52,66.073353,-150.168267,4,210,220,aspen,upper slope,xeric,3,5.6,2.3,216.67,0.19,15590.91,2004,young,20,disturbance,decid,209.97514111622277,0.06416666666666666,1
+Ray Mountains,DCY17,DC55,65.896067,-149.752832,5,186,150,aspen,middle slope,subxeric-mesic,2,6.5,3.7,2383.33,1.64,64727.27,2004,young,20,disturbance,decid,1003.8873271935488,0.5133333333333333,1
+Ray Mountains,DCY2,DC36,66.215182,-150.257716,5,85,445,mixed,toe slope,mesic-subhygric,1,3.8,6.8,25,0.05,19909.09,2004,young,20,disturbance,mixed,18.06529648983671,0.01,0.5
+Ray Mountains,DCY3,DC53,66.072254,-150.167891,7,155,206,mixed,toe slope,subxeric-mesic,3,7.7,3.1,358.33,0.25,51090.91,2004,young,20,disturbance,decid,371.4135646108015,0.1725,1
+Ray Mountains,DCY4,DC49,66.105262,-150.151326,2,15,220,mixed,flat,subhygric,1,6.1,19,0,0,19636.36,2004,young,20,disturbance,spruce,0,0,0
+Ray Mountains,DCY5,DC46,66.109679,-150.156852,0,90,220,aspen,upper slope,xeric,3,4.7,1.6,525,0.36,56090.91,2004,young,20,disturbance,decid,181.91347270070173,0.09333333333333334,1
+Ray Mountains,DCY6,DC44,66.140521,-150.170408,0,90,250,black spruce,upper slope,subxeric-mesic,2,6.1,5.6,0,0,114090.91,2004,young,20,disturbance,decid,14.642297218344984,0.01,1
+Ray Mountains,DCY7,DC42,66.151718,-150.179563,0,90,260,mixed,flat,subxeric-mesic,3,6.2,2.4,0,0,119681.82,2004,young,20,disturbance,NA,NA,NA,NA
+Ray Mountains,DCY8,DC40,66.163658,-150.203584,0,90,280,aspen,flat,mesic,3,6.3,1.7,0,0,91000,2004,young,20,disturbance,decid,17.50617799892764,0.015,1
+Ray Mountains,DCY9,DC39,66.168628,-150.20114,1,231,300,mixed,flat,mesic,3,5.7,9,0,0,150409.09,2004,young,20,disturbance,decid,48.3552921087101,0.03,1
+Tanana-Kuskokwim Lowlands,DDM1,TKN0126,63.84662,-145.723333,4,324,533,black spruce,toe slope,mesic-subhygric,NA,5.3,17,52954.55,3716.67,10.11,1930,mature,135,core,spruce,0,0,0
+Tanana-Kuskokwim Lowlands,DDM2,TKN0124,63.89178,-145.74101,0,0,500,black spruce,summit,xeric,NA,5.92,2.5,24954.55,3716.67,11.46,1930,mature,92,core,spruce,6.535051657450478,0.00166666666666666,0.00295852541714416
+Tanana-Kuskokwim Lowlands,FP5A,FP5A,64.681479,-148.249062,0,0,133,black spruce,NA,subxeric-mesic,NA,0,21.1,5909.09,1283.33,12.15,1930,mature,NA,disturbance,spruce,9.240818154890144,0.00166666666666666,0.01054742319688758
+Tanana-Kuskokwim Lowlands,FP5C,FP5C,64.713614,-148.147263,0,0,135,birch,NA,subxeric-mesic,3,0,NA,0,0,53227.27,2010,young,14,disturbance,NA,NA,NA,NA
+Yukon-Tanana Uplands,FP5D,FP5D,64.72541,-148.19274,0,0,135,black spruce,NA,mesic,NA,0,41.3,28636.36,3025,8.58,1930,mature,NA,disturbance,spruce,23.38835585587332,0.00583333333333333,0.01839895762886362
+Tanana-Kuskokwim Lowlands,GRI1,GR-9,63.772116,-145.079202,0,0,552,black spruce,depression,subhygric,NA,7.09,50,1866.67,2.71,9954.55,1947,intermediate,82,core,spruce,375.9109215017064,0.035,0.2618338222576485
+Tanana-Kuskokwim Lowlands,GRI2,GR-2,63.787588,-145.055334,1,14,575,aspen,flat,mesic,NA,8.15,10.22,1766.67,23.56,62590.91,1947,intermediate,57,core,decid,11256.937485365394,0.36833333333333335,0.986041399565273
+Tanana-Kuskokwim Lowlands,GRI3,GR-1,63.791346,-145.041859,1,14,504,aspen,toe slope,mesic,NA,7.45,10.45,2575,27.9,41772.73,1947,intermediate,61,core,decid,11262.933261501024,0.19583333333333333,0.7504376535487036
+Tanana-Kuskokwim Lowlands,GRI4,GR-6,63.793417,-145.054202,1,71,500,birch,flat,mesic,NA,8.1,8.8,5283.33,26.76,9318.18,1947,intermediate,61,core,decid,9585.3580664267,0.31,0.6755002799256262
+Tanana-Kuskokwim Lowlands,GRI5,GR-5,63.795019,-145.076628,1,342,500,aspen,flat,subxeric-mesic,NA,8.21,9.1,1425,21.17,86181.82,1947,intermediate,53,core,decid,9549.422346318304,0.23333333333333336,0.8983832286269646
+Tanana-Kuskokwim Lowlands,GRI6,GR-3,63.800401,-145.055548,0,0,495,aspen,flat,mesic,NA,7.45,5.7,3466.67,19.93,59863.64,1947,intermediate,64,core,mixed,7049.517407927587,0.21,0.622084478210704
+Tanana-Kuskokwim Lowlands,GRI7,GR-4,63.801791,-145.061443,1,220,485,aspen,flat,subxeric-mesic,NA,7.68,4.1,1575,25.76,18909.09,1947,intermediate,74,core,decid,11532.357602143276,0.25416666666666665,0.9376181190852272
+Tanana-Kuskokwim Lowlands,GRM1,TKN0118,63.695772,-144.331784,2,303,448,black spruce,lowland,subxeric-mesic,NA,6.17,31,55227.27,6058.33,14.43,1930,mature,204,core,spruce,0,0,0
+Tanana-Kuskokwim Lowlands,GRM2,GR-10,63.787641,-145.063916,0,0,493,black spruce,NA,mesic,NA,0,NA,20272.73,6491.67,37.48,1930,mature,53,core,spruce,0,0,0
+Tanana-Kuskokwim Lowlands,GRM3,TKN0120,63.813653,-144.953825,0,0,430,black spruce,lowland,mesic-subhygric,NA,5.83,35,40000,1375,2.35,1930,mature,232,core,spruce,0,0,0
+Tanana-Kuskokwim Lowlands,GRM4,TKN0119,63.815131,-144.955467,0,0,429,black spruce,lowland,subxeric-mesic,NA,5.54,21,54454.55,3866.67,10.67,1930,mature,346,core,spruce,43.65908848919431,8.333333333333334e-4,0.00680324417050159
+Yukon-Tanana Uplands,GSI1,GS-3,64.80004,-148.41375,3,283,244,black spruce,lowland,mesic,NA,5.99,27.6,5825,9.81,23909.09,1966,intermediate,58,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,GSI2,GS-2,64.80255,-148.42039,3,333,129,black spruce,flat,subxeric-mesic,NA,5.95,79.9,441.67,0.37,10363.64,1966,intermediate,58,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,GSI3,GS-1,64.80951,-148.49298,10,79,210,birch,toe slope,mesic,NA,6.15,8.1,6858.33,15.31,13181.82,1966,intermediate,58,disturbance,spruce,2859.0843042145193,0.12666666666666668,0.26593746437604066
+Yukon-Tanana Uplands,GSM1,TKN0131L,64.80258,-148.31676,2,150,180,black spruce,NA,subhygric,NA,0,56,28590.91,2100,3.45,1930,mature,185,colocated,spruce,0,0,0
+Yukon-Tanana Uplands,GSM2,TKN0131,64.80334,-148.31574,2,95,163,black spruce,toe slope,subxeric,NA,6,24,18136.36,3191.67,17.28,1930,mature,185,core,spruce,0,0,0
+Yukon-Tanana Uplands,GSM3,TKN0040,64.916152,-147.832248,0,0,187,black spruce,valley bottom,subhygric,NA,5,30,10954.55,3450,4.91,1930,mature,190,core,spruce,0,0,0
+Yukon-Tanana Uplands,GSM4,TKN0043,64.942214,-148.25307,16,24,497,black spruce,side slope,subxeric-mesic,NA,4.72,20,13409.09,4108.33,9.85,1930,mature,107,core,spruce,79.01787170787735,0.00916666666666666,0.02131032877252123
+Yukon-Tanana Uplands,GSM5,TKN0024,64.998563,-147.65685,9,326,431,black spruce,side slope,subxeric,NA,4.83,30,47272.73,2016.67,4.1,1930,mature,184,core,spruce,2.6660669291424184,0.00166666666666666,0.00362727540065777
+Yukon-Tanana Uplands,HR1A,HR1A,65.170919,-147.543574,15,325,600,black spruce,NA,mesic,1,0,4.3,0,0,26590.91,1999,young,25,disturbance,NA,NA,NA,NA
+Ray Mountains,LGI1,LG-2,65.42936,-148.86419,8,173,290,black spruce,toe slope,mesic,NA,7,23.6,1100,2.35,5363.64,1958,intermediate,66,disturbance,spruce,0,0,0
+Ray Mountains,LGI2,LG-3,65.44649,-148.7609,12,144,330,black spruce,toe slope,subxeric,NA,5.03,9.1,1758.33,11.26,3909.09,1958,intermediate,66,disturbance,spruce,1355.0817313880236,0.0575,0.3082030729932448
+Yukon-Tanana Uplands,MDI1,MD-5,64.879074,-148.381474,3,69,211,birch,side slope,subxeric-mesic,NA,5.7,11.8,12108.33,29.41,4363.64,1958,intermediate,58,core,mixed,5866.186230060092,0.38166666666666665,0.385309785348059
+Yukon-Tanana Uplands,MDI2,MD-7,64.879249,-148.389008,10,68,256,birch,side slope,subxeric,NA,6.25,10.6,9375,18.17,45090.91,1958,intermediate,53,core,mixed,4751.5960438108705,0.48666666666666664,0.512885902664577
+Yukon-Tanana Uplands,MDI3,MD-6,64.880388,-148.382724,5,79,205,birch,side slope,subxeric-mesic,NA,5.93,8.5,4258.33,27.8,818.18,1958,intermediate,58,core,decid,15210.096077419,0.3433333333333333,0.7350325999636467
+Yukon-Tanana Uplands,MDI4,MD-2,64.882718,-148.355499,7,228,226,hardwood,side slope,subxeric,NA,5.95,5.1,12100,28.1,42454.55,1958,intermediate,53,core,mixed,7775.894795114574,0.5208333333333334,0.4917221507686235
+Yukon-Tanana Uplands,MDI5,MD-8,64.882947,-148.398187,10,354,226,black spruce,toe slope,mesic,NA,5.35,46,1908.33,2.21,28363.64,1958,intermediate,71,core,spruce,27.05749330824058,0.00916666666666666,0.02419022884108075
+Yukon-Tanana Uplands,MDM1,MD-3,64.871571,-148.37117,3,84,197,black spruce,NA,mesic,NA,0,49.5,77590.91,7991.67,13.93,1930,mature,115,core,spruce,0,0,0
+Yukon-Tanana Uplands,NRM1,Nenana Ridge Bottom,64.60724,-148.82573,3,60,197,black spruce,NA,mesic-subhygric,NA,0,174.4,44772.73,5008.33,6.25,1930,mature,NA,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,NRM2,Nenana Ridge,64.68328,-148.55992,0,0,220,black spruce,NA,subhygric,NA,0,33.3,32863.64,983.33,1.33,1930,mature,NA,disturbance,spruce,0,0,0
+Tanana-Kuskokwim Lowlands,SL1A,SL1A,64.654214,-148.281215,0,0,131,mixed,NA,mesic-subhygric,1,0,12.5,0,0,32000,2001,young,23,disturbance,mixed,15.326876021363129,0.00625,0.5
+Tanana-Kuskokwim Lowlands,SL1B,SL1B,64.648269,-148.286119,0,0,130,black spruce,NA,subhygric,1,0,16.4,0,0,24636.36,2001,young,23,disturbance,NA,NA,NA,NA
+Yukon-Tanana Uplands,TRM1,TKN0139,65.25333,-148.13914,5,54,270,black spruce,toe slope,subxeric-mesic,NA,4.71,38,25681.82,3041.67,3.11,1930,mature,112,core,spruce,0,0,0
+Yukon-Tanana Uplands,TRM2,Tatalina River 1,65.31219,-148.338,0,0,134,black spruce,NA,subhygric,NA,0,NA,0,33.33,0.04,1930,mature,NA,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,TRM3,Tatalina River 2,65.31458,-148.33536,0,0,127,black spruce,NA,subhygric,NA,0,NA,59772.73,3141.67,5.07,1930,mature,NA,disturbance,spruce,0,0,0
+Ray Mountains,TRM4,TKN0137,65.40996,-148.23179,0,0,485,black spruce,summit,subxeric,NA,5.24,24,17136.36,4350,9.34,1930,mature,118,core,spruce,26.01485850627864,0.0025,0.00547344515167122
+Yukon-Tanana Uplands,UP4A,TKN0001,64.768106,-148.29868,10,252,497,black spruce,side slope,subxeric,NA,5.65,25,17772.73,7991.67,26.52,1930,mature,111,core,spruce,19.104515016589257,0.00166666666666666,0.00260931076354594
+Yukon-Tanana Uplands,UP4B,TKN0103,64.771601,-148.27359,9,20,400,black spruce,side slope,mesic-subhygric,NA,3.95,24,9681.82,3150,17.12,1930,mature,197,core,spruce,0,0,0
+Yukon-Tanana Uplands,UP4C,TKN0110,65.153934,-147.491333,5,154,228,black spruce,toe slope,mesic-subhygric,NA,5.04,30,28181.82,958.33,1.16,1930,mature,148,core,spruce,0,0,0
+Yukon-Tanana Uplands,UP4D,TKN0134,65.169054,-147.550557,3,79,629,black spruce,summit,subxeric,NA,4.95,17,14363.64,5458.33,21.41,1930,mature,116,core,spruce,155.40470317686868,0.00166666666666666,0.01246825471619647
+Yukon-Tanana Uplands,WCM1,Washington Creek 1,65.12465,-147.97308,0,0,225,black spruce,NA,subhygric,NA,0,NA,15227.27,1183.33,1.82,1930,mature,NA,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,WCM2,Washington Creek 3,65.13634,-147.97132,3,80,260,black spruce,NA,mesic-subhygric,NA,0,NA,20090.91,1908.33,3.85,1930,mature,NA,disturbance,spruce,0,0,0
+Yukon-Tanana Uplands,WCM3,TKN0015,65.15466,-147.86305,0,0,274,black spruce,valley bottom,subhygric,NA,5.53,17,43409.09,2366.67,6.66,1930,mature,178,core,spruce,0,0,0
+Yukon-Tanana Uplands,WCM4,TKN0012,65.167267,-147.89408,1,164,584,black spruce,summit,subxeric,NA,5.24,22,28090.91,9608.33,21.58,1930,mature,243,core,spruce,68.62847655419304,0.00416666666666666,0.00750087029169294
+Yukon-Tanana Uplands,WDI1,WD-1,65.116602,-148.080849,3,234,242,black spruce,toe slope,mesic,NA,6,12.8,558.33,0.56,18454.55,1971,intermediate,90,core,spruce,1.3303380878721327,8.333333333333334e-4,0.00370334383591836
+Yukon-Tanana Uplands,WDI2,WD-2,65.124643,-148.07587,20,250,335,birch,side slope,subxeric,NA,7.22,6.9,3283.33,15.63,3363.64,1971,intermediate,39,core,decid,6839.002491423807,0.32666666666666666,0.8863811153184601
+Yukon-Tanana Uplands,WDI3,WD-3,65.125453,-148.076713,15,250,343,birch,side slope,subxeric,NA,5.87,8.1,2208.33,5.82,3181.82,1971,intermediate,37,core,spruce,1203.9989659433418,0.07666666666666666,0.3235230288341832
+Yukon-Tanana Uplands,WDI4,WD-4,65.126346,-148.077367,25,255,344,birch,side slope,subxeric-mesic,NA,6.07,7.2,3016.67,12.54,1954.55,1971,intermediate,39,core,decid,4615.41392863204,0.20166666666666663,0.66056153666731
+Yukon-Tanana Uplands,WDI5,WD-6,65.145285,-148.018896,0,158,500,aspen,summit,subxeric,NA,6.38,4,1800,9.58,10909.09,1971,intermediate,64,core,mixed,3963.647707049426,0.14166666666666666,0.568070204752679
+Yukon-Tanana Uplands,WDI6,WD-8,65.148679,-148.026427,22,224,520,aspen,side slope,subxeric,NA,5.76,5.1,6383.33,26.37,3863.64,1971,intermediate,46,core,decid,10165.252968099368,0.8400000000000001,0.9728647862730384
+Ray Mountains,YRM1,TKN0148,65.56605,-148.92284,7,230,318,black spruce,side slope,subxeric-mesic,NA,6.71,32,20090.91,5050,9.11,1930,mature,119,core,spruce,46.53528775008859,0.00416666666666666,0.01236049941132968

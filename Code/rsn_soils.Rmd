@@ -1,0 +1,43 @@
+---
+title: "rsn_soils"
+author: "Weronika Konwent"
+date: "2024-10-03"
+output: html_document
+---
+## RSN Soils
+This markdown can be used to process soil data for rsn sites. There is some work here, but I think this will be a good place to add further data as whata we have grows.
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/R/BNZ_RSN_WG")
+
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+```
+
+Catherine Dielman from Guelph shared these data through correspondence. They are not archived anywhere, other than our goolge drive and not github.
+```{r rsn soils from Guelph}
+
+#read in LOI data from Catherine/Guelph. these are the actual CN data
+rsn_cn <- read_csv("Data/raw/from_catherine/LOI data.csv")
+
+#read in the other core processing data so that we can merge these two datasets
+rsn_soil_cores <- read_csv("Data/raw/from_catherine/CoreProcessing_5-21-2019_11_39_11_PM.csv")
+
+#first step, let's rename columns to avoid special characters, and get rid of extraneous NA rows
+rsn_cn <- rsn_cn %>%
+  rename(LOI = "LOI%") %>% 
+  filter(!is.na(LOI))
+
+#now let's merge by whirlpack_A_ID
+rsn_guelph_cores <- rsn_cn %>%
+  left_join(rsn_soil_cores, by = "Whirlpak_A_ID")
+
+#let's save these for sharing
+write_csv(rsn_guelph_cores, file = "Data/working/rsn_guelph_cores.csv")
+
+```
+Alright. There are lots of issues with these data. we have 9 pf cores, which is great. but the remaining sites are all short cores, and it doesn't seem like the core_number for them is necessarily correct. OR, there have been 6 cores all along, and they are not in our core_inventory. also, site BF6 does not exist. We have BF61 and 63. On top of that, UP4A and D do not exist in our inventory list, neither as their alternative names TKN0001 and TKN 0134. It also seems like the site_ids are a horrid mix of rsn names and alt names which will be a bummer to untangle. 
+
+Also, looking at the site list for cores in general, we have a total of 79 sites. This means we are still missing 13 rsn sites. Probably. This might be off one or two, but generally, we're still missing sites!!

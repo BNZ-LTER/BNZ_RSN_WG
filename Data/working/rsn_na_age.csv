@@ -1,0 +1,12 @@
+ecoregion,sitename,prelimID,n_dd,w_dd,slope,aspect,elevation,canopy_typ,topo,moist,severity,ph,org_depth,treeden,treeba,seedlingde,burn_year,age,age_ave,age_min,age_max,age_median,age_source,derived_age
+Yukon-Tanana Uplands,BCEFM2,Apex Beta,64.69516,-148.32324,0,0,141,black spruce,NA,subhygric,NA,0,135.2,17909.09,2275,2.64,1930,mature,NA,NA,NA,NA,disturbance,94
+Ray Mountains,BDM1,BD69T2,65.15799,-150.13574,0,0,217,black spruce,NA,mesic,NA,0,27,22818.18,3783.33,7.15,1930,mature,NA,NA,NA,NA,disturbance,94
+Ray Mountains,DCM1,Dalton,66.240395,-150.312493,6,294,485,black spruce,NA,mesic,NA,0,27.7,3545.45,1675,7.92,1930,mature,NA,NA,NA,NA,disturbance,94
+Tanana-Kuskokwim Lowlands,FP5A,FP5A,64.681479,-148.249062,0,0,133,black spruce,NA,subxeric-mesic,NA,0,21.1,5909.09,1283.33,12.15,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,FP5D,FP5D,64.72541,-148.19274,0,0,135,black spruce,NA,mesic,NA,0,41.3,28636.36,3025,8.58,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,NRM1,Nenana Ridge Bottom,64.60724,-148.82573,3,60,197,black spruce,NA,mesic-subhygric,NA,0,174.4,44772.73,5008.33,6.25,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,NRM2,Nenana Ridge,64.68328,-148.55992,0,0,220,black spruce,NA,subhygric,NA,0,33.3,32863.64,983.33,1.33,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,TRM2,Tatalina River 1,65.31219,-148.338,0,0,134,black spruce,NA,subhygric,NA,0,NA,0,33.33,0.04,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,TRM3,Tatalina River 2,65.31458,-148.33536,0,0,127,black spruce,NA,subhygric,NA,0,NA,59772.73,3141.67,5.07,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,WCM1,Washington Creek 1,65.12465,-147.97308,0,0,225,black spruce,NA,subhygric,NA,0,NA,15227.27,1183.33,1.82,1930,mature,NA,NA,NA,NA,disturbance,94
+Yukon-Tanana Uplands,WCM2,Washington Creek 3,65.13634,-147.97132,3,80,260,black spruce,NA,mesic-subhygric,NA,0,NA,20090.91,1908.33,3.85,1930,mature,NA,NA,NA,NA,disturbance,94
