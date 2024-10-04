@@ -1,0 +1,400 @@
+---
+title: "all_alaska_soils"
+author: "Weronika Konwent"
+date: "2024-05-09"
+output: html_document
+---
+
+## BNZ Soils
+The purpose of this code is to collect age, site, and deciduous data for sites surveyed through the BNZ that ALREADY HAVE CN soil and age data. There is no actual soil data here, though. These sites are not necessarily RSN sites.
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/R/BNZ_RSN_WG")
+
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+
+```
+
+Some of betsy's data in central Alaska from the FISL project. Much of Betsy's work was in deciduous stands, which make these sites good candidates for filling in soil gaps for young deciduous sites.
+```{r betsy's data}
+#read in betsy's soil that I received from Xanthe
+black_soil <- read_csv("Data/raw/Black_soil/xandata043024.csv")
+
+names(black_soil)
+head(black_soil)
+
+#use Xanthe's code to calculate deciduous index
+black_soil %>%
+  mutate(density.dec=density.as+density.br+density.bp, 
+         density.con=density.bs+density.ws+density.unk.con, 
+         rel.dens.con=density.con/(density.con+density.dec), 
+         rel.bio.con=biomass.con/(biomass.con+biomass.dec), 
+         rel.dens.dec=1-rel.dens.con, 
+         rel.bio.dec=1-rel.bio.con,
+         d.index=(rel.dens.dec+rel.bio.dec)/2, 
+         class=ifelse(d.index<0.33, "spruce", 
+                      ifelse(d.index>0.66, "decid", "mixed"))) -> black_soil.a
+
+black_soil.a=as.data.frame(black_soil.a)
+
+black_soil.b=select(black_soil.a, study, fire_scar, site, postfire.age, d.index, class)
+
+#assign trajectory
+black_soil.b %>%
+  group_by(fire_scar, site, postfire.age, study)%>%
+  summarize(d.index = mean(d.index, na.rm = TRUE)) %>% 
+  ungroup() %>% 
+  mutate(class=ifelse(d.index<0.33, "spruce", 
+                      ifelse(d.index>0.66, "decid", "mixed"))) %>% 
+  rename(sitename = fire_scar) -> black_soil.c
+
+black_soil.c %>% 
+  mutate(sitename = paste0(sitename, "_", site)) %>% 
+  select(study, sitename, postfire.age, d.index, class) -> black_soil.c
+
+```
+Heather's sites are mostly intermediate deciduous. These data are also shared informaly, and are not archived. 
+```{r Heather Alexander data}
+ha_soil <- read_csv("Data/raw/Black_soil/HA_data/HAlexander_SOILS.csv")
+ha_sites <- read_csv("Data/raw/Black_soil/HA_data/HA_treecats_forCpools_alltrees.csv")
+
+names(black_soil)
+head(black_soil)
+
+#only keep sites for which we have soil data
+ha_soil <- ha_soil[complete.cases(ha_soil$CN), ]
+
+#let's clean up ha_site a bit
+ha_sites %>%
+  mutate(study = "HA_chrono",
+         subplot = gsub("chrono_", "", subplot),
+         plot = gsub("chrono_", "", plot)) %>% 
+  rename(postfire.age = "StdAge") %>% 
+  select(study, plot, subplot, DCM.cat, postfire.age) -> ha_sites
+
+#we have to standardize age across sites
+#jeremy wrote this code. yikes.
+num_sites <- unique(ha_sites$plot)
+
+age_vector <- vector()
+for (i in 1:length(num_sites)) {
+  age_vector <- c(age_vector,max(subset(ha_sites, plot == num_sites[i])[["postfire.age"]], na.rm = TRUE))
+}
+age_vector[is.infinite(age_vector)]<-NA
+age_vector<-data.frame(Sites=num_sites,Age=age_vector)
+
+for(i in 1:dim(ha_sites)[[1]]){
+  ha_sites$postfire.age[i] <- subset(age_vector, Sites == ha_sites$plot[i])[['Age']]
+}
+rm(age_vector,num_sites,i)
+
+#let's make a uniqueID that matches ha_site so that we can check if all of the ha_sites were sampled for soil
+ha_soil <- unite(ha_soil, "plot", Site, Transect, sep = "")
+ha_soil <- unite(ha_soil, "subplot", plot, Subsection, sep = "_")
+
+#this way we get an observation for every soil sample
+### could i just skip using ha_soil and only use ha_site?
+ha_soils <- full_join(ha_soil, ha_sites, by = "subplot")
+  
+ha_soils %>% 
+  rename( sitename = "plot") %>% 
+  select(study, sitename, DCM.cat, postfire.age) %>% 
+  group_by(study, sitename, DCM.cat, postfire.age) %>% 
+  summarise(count = n(), .groups = 'drop') %>% 
+  pivot_wider(names_from = DCM.cat, values_from = count, values_fill = list(count = 0)) %>% 
+  ungroup() -> ha_soils
+
+#remove NA row
+ha_soils <- ha_soils[complete.cases(ha_soils$sitename), ]
+ha_soils %>% 
+  select(study, sitename, postfire.age, conifer, deciduous, mixed) -> ha_soils
+
+#let's make a deciduous index out of count
+ha_soils %>% 
+  rowwise() %>%
+  mutate(total_count = sum(c_across(conifer:mixed), na.rm = TRUE)) %>%
+  ungroup() %>% 
+  mutate(d.index = (conifer/total_count)*0.25 + (mixed/total_count)*0.5 + (deciduous/total_count)*0.75,
+  class=ifelse(d.index<0.33, "spruce", 
+                      ifelse(d.index>0.66, "decid", "mixed"))) -> ha_soils
+
+#here we're randomly assigning an intermediate age to some of Heather's sites that don't have ages.   
+#postfire.age = ifelse(is.na(postfire.age), 35, postfire.age)) -> test
+
+```
+These data are pulled from the BNZ archive, under Melanie Jean's work. Many sites are also Heather Alexander sites.
+```{r new version of HA data}
+#these data are pulled from the BNZ database
+ha_jean <- read_csv("Data/raw/Black_soil/801_Jean_SiteEnvironmentalData.csv")
+
+#let's calculate deciduous index from biomass and density
+ha_jean %>%
+  mutate(density.dec=Pbdensity+Bpdensity+Ptdensity, 
+         density.con=Pmdensity, 
+         biomass.dec = Bpbiomass + Pb_biomass, Ptbiomass,
+         biomass.con = Pmbiomass,
+         rel.dens.con=density.con/(density.con+density.dec), 
+         rel.bio.con=biomass.con/(biomass.con+biomass.dec), 
+         rel.dens.dec=1-rel.dens.con, 
+         rel.bio.dec=1-rel.bio.con,
+         d.index=(rel.dens.dec+rel.bio.dec)/2, 
+         class=ifelse(d.index<0.33, "spruce", 
+                      ifelse(d.index>0.66, "decid", "mixed"))) -> ha_jean.a
+
+ha_jean.a=as.data.frame(ha_jean.a)
+
+#clean up the df to just include what we're interested in. note that we will want to recalculate the age so that it is accurate for 2024
+ha_jean.b=select(ha_jean.a, SiteCode, BurnYear, d.index, class)
+
+#let's fix the age here
+current_year <- as.integer(format(Sys.Date(), "%Y"))
+ha_jean.b %>%
+  mutate(postfire.age = current_year - BurnYear) -> ha_jean.b
+
+#ok, now let's combine this to the HA data so that we know which sites we have soil data for
+values_jean <- ha_jean.b %>% distinct(SiteCode)
+values_ha <- ha_soils %>% distinct(sitename)
+common_ha <- intersect(values_jean$SiteCode, values_ha$sitename)
+
+#filter ha_jean.b to keep only rows with site in common_ha
+ha_jean.b %>%
+  filter(SiteCode %in% common_ha) -> ha_jean.c
+
+#ok, this is bonked, but what if I make an ha_chrono version with the d.index to complement the jean data
+values_jean <- ha_jean.c %>% distinct(SiteCode)
+values_ha <- ha_soils %>% distinct(sitename)
+common_ha <- intersect(values_jean$SiteCode, values_ha$sitename)
+
+ha_soils %>%
+  filter(!(sitename %in% common_ha)) -> ha_soils.a
+#ok, so actually turns out that all of these overflow sites don't have attached ages....so I think I'm going to ignore them.
+#let's use ha_jean.c to represent HA data in the total dataset
+
+#let's make ha_jean.c match our other dataset
+ha_jean.c %>% 
+  mutate(study = "ha_jean") %>% 
+  rename(sitename = "SiteCode") %>% 
+  select(study, sitename, postfire.age, d.index, class) -> ha_jean.c
+
+```
+So, we will use only ha_jean to indicate both HA and JEAN sites. 
+
+We can also pull some TKN sites that have soil AND age data. Teresa's stuff is classically spruce, but we'll be particularly interested in her old spruce sites.
+```{r TKN data}
+#these data are also from the BNZ database
+tkn_soil <- read_csv("Data/raw/321_Soil_CandN_2001.csv")
+tkn_age <- read_csv("Data/raw/139_treecores_rings.csv")
+
+names(tkn_soil)
+head(tkn_soil)
+
+tkn_soil %>%
+  group_by(Site) %>%
+  summarize(sample = n()) %>%
+  mutate(study = "TKN") %>% 
+  select(study, Site) -> tkn_soil
+
+#find common unique_ids between the two datasets
+common_age <- intersect(tkn_age$Site, tkn_soil$Site)
+#we have 36 sites in age that we know have soil data
+
+#let's keep just these 36 sites
+tkn_age <- tkn_age[tkn_age$Site %in% common_age, ]
+
+#add tkn age
+tkn_age %>% 
+  rename(tree_num = "Tree #",
+         est_age = "Est. inner date of est.") %>% 
+  select(Site, tree_num, est_age) -> tkn_age
+
+tkn_age_site <- tkn_age %>%
+  pivot_wider(names_from = tree_num, values_from = est_age, names_prefix = "tree")
+#hmmmm, looks like there are some sites that have two entries for tree #4, or have a tree 4 and are missing a tree 3
+#we need to do some cleaning up of these data
+
+#what if we do a combination group by site and number
+tkn_age_unique <- tkn_age %>%
+  group_by(Site, tree_num) %>%
+  mutate(row = row_number()) %>%
+  ungroup()
+
+#then we pivot, so that each site that has a duplicate tree number gets an extra row. 
+tkn_age_site <- tkn_age_unique %>%
+  pivot_wider(names_from = tree_num, values_from = est_age, names_prefix = "tree")
+
+#then we can target each row 2 to change it to tree5
+#this doesn't fix our problem with missing tree 3s, but that doesn't matter since we'll be taking summary stats anyway
+tkn_age_site <- tkn_age_site %>%
+  group_by(Site) %>%
+  mutate(tree5 = ifelse(any(row == 2), lead(tree4), tree5)) %>%
+  filter(row == 1) %>%
+  ungroup()
+
+tkn_age_site <- select(tkn_age_site, Site, tree1, tree2, tree3, tree4, tree5, tree6)
+#now we can create summary stats
+#we will again use out current year so that the ages are correct as this dataset ages
+
+#let's make a current year value so that our ages are always current
+current_year <- as.integer(format(Sys.Date(), "%Y"))
+#the cores in tree_age were all collected in 2011
+
+#average stand age
+tkn_age_site$age_ave <- rowMeans(tkn_age_site[2:7], na.rm = TRUE)
+tkn_age_site$age_ave <- current_year - tkn_age_site$age_ave
+tkn_age_site$age_ave <- round(tkn_age_site$age_ave, 0)
+
+tkn_age <- select(tkn_age_site, Site, age_ave)
+
+tkn_age %>%
+  mutate(study = "TKN",
+         class = "spruce",
+         d.index = "0") %>% 
+  rename(postfire.age = age_ave,
+         sitename = Site) -> tkn_age
+
+# ### d index
+# tree_inv <- read_csv("Data/working/rsn_bio_dens_bysite.csv")
+# tree_inv <- rename(tree_inv, sitename = SITE)
+# 
+# #need to dd prelimIDs to tree_inv
+# site_names_df <- read_csv("Data/working/RSN_site_names.csv")
+# tree_inv <- full_join(tree_inv, site_names_df, by = "sitename")
+# 
+# #first let's filter out just tkn_age sites
+# common_age <- intersect(tkn_age$sitename, tree_inv$prelimID)
+# site_names_df <- site_names_df[site_names_df$sitename %in% common_age, ]
+# tree_inv <- tree_inv[tree_inv$prelimID %in% common_age, ]
+# 
+# #let's keep site, d.index, decid.bio, decid.dens, and class
+# decid_index <- select(tree_inv, sitename, prelimID, D.Index, Class)
+# 
+# decid_index %>% 
+#   #rename columns for clarity
+#   rename(d.index = D.Index,
+#          class = Class,
+#          site = sitename,
+#          sitename = prelimID) %>% 
+#   #make class data lower case
+#   mutate(class = tolower(class)) -> decid_index
+# 
+# #now let's join this to tkn_age
+# tkn_age <- full_join(tkn_age, decid_index, by = "sitename")
+# tkn_age %>%
+#   mutate(d.index = coalesce(as.character(d.index.y), as.character(d.index.x)),
+#          class = coalesce(class.x, class.y)) -> tkn_age
+# 
+# tkn_age <- select(tkn_age, study, sitename, postfire.age, class, d.index)
+# 
+# #for use in making figures, let's keep age, decid.bio, decid.dens, D.Index and class
+# bio_dens_age_bysite <- select(rsn_master, sitename, age, decid.bio, decid.dens, d.index, class)
+
+```
+An issue with Teresa's data is that we don't know what age represents. Age of last disturbance? Actual age? 
+
+We can also pull some jfsp sites  that have soil data courtesy of leslie boby and anastasia pulak.
+```{r Pulak / Boby data}
+#read in file that anastasia made that combines data from her sampling of jfsp sites and leslie boby sampling of jfsp sites
+#this file was shared informally by anastasia - it is not archived anywhere.
+jfsp_soil <- read_csv("Data/working/JFSP.sample.inventory.csv")
+
+names(jfsp_soil)
+head(jfsp_soil)
+
+jfsp_soil %>%
+  #make study column
+  mutate(study = "JFSP",
+         traj.20 = tolower(traj.20),
+         traj.20 = case_when(traj.20 == "deciduous" ~ "decid", TRUE ~ traj.20)) %>% 
+  #rename columns for good joining
+  rename(class = "traj.20",
+         d.index = "decid.index",
+         sitename = "site") -> jfsp_soil
+
+#separate boby and ap sampling so that we can make ages for them
+boby_soil <- select(jfsp_soil, study, sitename, d.index, class, sampled_2005)
+ap_soil <- select(jfsp_soil, study, sitename, d.index, class, sampled_2023)
+
+#keep only sites ap sampled in 2023, give them a postfire age
+ap_soil %>% 
+  filter(sampled_2023 != "no") %>% 
+  mutate(postfire.age = 2023 - 2004) %>% 
+  select(study, sitename, postfire.age, d.index, class) -> ap_soil
+
+#give boby sites a postfire age
+boby_soil %>% 
+  mutate(postfire.age = 2005 - 2004) %>% 
+  select(study, sitename, postfire.age, d.index, class) -> boby_soil
+
+#join the two sampling years to one jfsp dataset
+jfsp_soil <- rbind(ap_soil, boby_soil)
+
+#i'm going to remove all "open" trajectories for now
+jfsp_soil %>% 
+  filter(class != "open",
+         #4 sites do now have d.indexes. why?
+         d.index != "NA") -> jfsp_soil
+
+###what do we want to do about "open" trajectories
+```
+
+Combine all 4-5 disparate data sets.
+```{r combining all data}
+
+all_soils <- rbind(black_soil.c, tkn_age, jfsp_soil, ha_jean.c)
+all_soils$d.index <- as.numeric(as.character(all_soils$d.index))
+
+```
+
+Figure comparing age and d.index. all of these sites also have CN data
+```{r making figures}
+
+#figure for d index vs stand age
+f <- ggplot(all_soils, aes(x = postfire.age, y = d.index, color = class)) +
+  geom_point() +
+  theme_bw() +
+  labs(x = "Stand Age", y = "Deciduous Index") +
+  geom_point(size = 3, aes(fill = class, shape = study)) +
+  scale_color_manual(values = c("gold1", "#77D153FF", "#443983FF", "#ADD8E6")) +
+  scale_x_continuous(breaks = seq(0, 250, by = 10),
+                     limits = c(0, 250),
+                     labels = function(x) ifelse(x %% 50 == 0, as.character(x), "")) +
+  scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1))
+f
+
+```
+
+```{r figure for sites we want to collect soils at}
+#figure from above with potential cafi_rsn sites added
+#we want to keep only those between 35 and 100 years old
+bnz_cafi <- read_csv("Data/working/bnz_cafi.csv")
+bnz_cafi <- subset(bnz_cafi, age_ave >= 35 & age_ave <= 100)
+
+#to make nice shapes
+study_shapes <- c("FiSL" = 17, "ha_jean" = 16, "JFSP" = 15, "TKN" = 18)
+id_shapes <- c("CAFI" = 1, "RSN" = 2)
+
+#to make nice legend
+all_soils$study <- factor(all_soils$study, levels = c("FiSL", "ha_jean", "JFSP", "TKN"))
+bnz_cafi$ID <- factor(bnz_cafi$ID, levels = c("CAFI", "RSN"))
+
+#figure for D.index v age for sites that have CN data, with overlay of potential RSN and CAFI sites that do not have CN data
+ggplot() +
+  geom_point(data = all_soils, aes(x = postfire.age, y = d.index, color = class, shape = study), size = 3) +
+  geom_point(data = bnz_cafi, aes(x = age_ave, y = d.index, color = class, shape = ID), size = 3, fill = NA) +
+  theme_bw() +
+  labs(x = "Stand Age", y = "Deciduous Index") +
+  scale_color_manual(values = c("gold1", "#77D153FF", "#443983FF")) +
+  scale_shape_manual(values = c(study_shapes, id_shapes)) +
+  scale_x_continuous(breaks = seq(0, 250, by = 10),
+                     limits = c(0, 250),
+                     labels = function(x) ifelse(x %% 50 == 0, as.character(x), "")) +
+  scale_y_continuous(breaks = c(0, 0.25, 0.5, 0.75, 1)) +
+  guides(color = guide_legend(order = 1), shape = guide_legend(order = 2)) -> f.1
+f.1
+
+```
+Notice here that the graphs are capped at 250 years on the x axis. we are missing some of the oldest teresa sites, because of this. 
+At this point, in October 2024, there was associated CN data for 1 RSN site (UP4C) that we know of. This data came from Guelph, completeing loss on ignition (LOI) method on a permafrost core 

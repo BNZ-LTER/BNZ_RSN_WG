@@ -1,0 +1,69 @@
+Site Name,Site Type,Moisture,Age,Vegetation,decimal degrees  (N),decimal degrees (W)
+,,,,,,
+Oxbow Lake,Lake,NA,NA,NA,64.908596,-147.941441
+,,,,,,
+Black Sheep Pond,Lake,NA,NA,NA,64.898811,-147.908035
+,,,,,,
+Doughnut Lake,Lake,NA,NA,NA,64.898811,-147.908035
+,,,,,,
+Killarney Lake,Lake,NA,NA,NA,64.87,-147.901
+,,,,,,
+Big Trail Lake,Lake,NA,NA,NA,64.92008,-147.8218
+,,,,,,
+Cranberry Lake,Lake,NA,NA,NA,64.936,-147.821
+,,,,,,
+Eagle Lake,Lake,NA,NA,NA,64.92305556,-147.8155556
+,,,,,,
+Vault Lake,Lake,NA,NA,NA,65.02947067,-147.6983539
+,,,,,,
+Goldstream Lake,Lake,NA,NA,NA,64.94025143,-147.6520787
+,,,,,,
+Goldstream at Standard Creek Rd.,Stream,NA,NA,NA,64.78363,-148.5324
+,,,,,,
+Happy,Stream,NA,NA,NA,64.887638,-147.969051
+,,,,,,
+O'Connor,Stream,NA,NA,NA,64.914997,-147.899007
+,,,,,,
+Goldstream at Ballaine Rd.,Stream,NA,NA,NA,64.91176,-147.831964
+,,,,,,
+El Dorado,Stream,NA,NA,NA,64.94501,-147.798909
+,,,,,,
+Poker,Stream,NA,NA,NA,65.152168,-147.484833
+,,,,,,
+Moose,Stream,NA,NA,NA,64.71415,-147.0539
+,,,,,,
+French ,Stream,NA,NA,NA,64.60687,-146.916
+,,,,,,
+YRM1,Upland,SUBXERIC-MESIC,Mature,Black spruce,65.56605,-148.92284
+,,,,,,
+LGI2,Upland,SUBXERIC,Intermediate,Mixed Black Spruce/Birch/Aspen,65.44649,-148.7609
+,,,,,,
+GSI3,Upland,MESIC,Intermediate,Black spruce,64.80951,-148.49298
+,,,,,,
+GSI2,Upland,SUBXERIC-MESIC,Intermediate,Black spruce,64.80255,-148.42039
+,,,,,,
+GSI1,Upland,MESIC,Intermediate,Black spruce,64.80004,-148.41375
+,,,,,,
+GSM1,Upland,SUBHYGRIC,Mature,Black spruce,64.80258,-148.31676
+,,,,,,
+GSM2,Upland,SUBXERIC,Mature,Black spruce,64.80334,-148.31574
+,,,,,,
+TRM4,Upland,MESIC,Mature,Black spruce,65.40996,-148.23179
+,,,,,,
+TRM1,Upland,SUBXERIC-MESIC,Mature,Black spruce,65.25333,-148.13914
+,,,,,,
+GSM3,Upland,SUBHYGRIC,Mature,Black spruce,64.916152,-147.832248
+,,,,,,
+UP4C,Upland,SUBHYGRIC,Mature,Black spruce,65.15393372,-147.4913325
+,,,,,,
+BFY7,Upland,MESIC-SUBHYGRIC,Young,Birch,65.153652,-147.47723
+,,,,,,
+BFY6,Upland,MESIC,Young,Birch,65.130069,-147.477168
+,,,,,,
+BFY4,Upland,SUBXERIC-MESIC,Young,Birch,65.14981,-147.47274
+,,,,,,
+BFY13,Upland,SUBXERIC-MESIC,Young,Birch,65.143817,-147.460553
+,,,,,,
+Moose Creek,Upland,NA,Mature,Black Spruce,64.71415,-147.0539
+,,,,,,
+CRREL Permafrost Research Tunnel,Deep Permafrost,NA,NA,NA,64.951,_147.621

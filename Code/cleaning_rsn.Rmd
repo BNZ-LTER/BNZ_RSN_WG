@@ -1,0 +1,527 @@
+---
+title: "cleaning_rsn"
+author: "Weronika Konwent"
+date: "2024-10-01"
+output: html_document
+---
+
+```{r setup, include=FALSE, warning=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "~/Library/CloudStorage/OneDrive-NorthernArizonaUniversity/R/BNZ_RSN_WG")
+
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+
+```
+## Cleaning files for RSN analysis
+
+This is one large file that contains code for cleaning many different files used to piece together data for the rsn_master. It is also a place in which we check the utility of various datafiles in informing the rsn.
+```{r coordinates}
+## checking the coordinates for RSN sites; using file 737 and Jamie's RSN coordinate file rsn_6_6_2016
+
+#reading in the two files
+rsn737 <- read_csv("Data/raw/737_RSN_SiteInformation.csv")
+rsn_coords <- read_csv("Data/raw/rsn_6_6_2016.csv")
+
+#let's make a single coordinate column
+rsn737 <- rsn737 %>%
+  mutate(coords = paste(n_dd, w_dd, sep = ", "))
+
+rsn_coords <- rsn_coords %>%
+  mutate(coords = paste(Latitude, Longitude, sep = ", "))
+
+#find common unique_ids between the two datasets
+common_coords <- intersect(rsn_coords$coords, rsn737$coords)
+#we have 87 common values
+#the differences might be small...next step will be to check on map
+
+# Find coords in rsn_coords that are not in rsn737
+unique_to_coords <- setdiff(rsn_coords$coords, rsn737$coords)
+#6 of them: UP4C, GSM5, SL1A, SL1B, FP5C, HR1A
+
+# Find coords in trsn737 that are not in rsn_coords
+unique_to_737 <- setdiff(rsn737$coords, rsn_coords$coords)
+#6 of them: FP5C, GSM5, HR1A, SL1A, SL1B, UP4C
+#same 6 sites, gonna double check them in arcgis
+
+weird_coords<- data.frame(
+  coords_rsn = c("65.153934, -147.491332", "64.998562, -147.65685", "64.654212, -148.281189", "64.648267, -148.286093",
+                 "64.713612, -148.147237", "65.170917, -147.543548"),
+  coords_737 = c("64.713614, -148.147263", "64.998563, -147.65685", "65.170919, -147.543574", "64.654214, -148.281215",
+                "64.648269, -148.286119", "65.153934, -147.491333"))
+
+write_csv(weird_coords, file = ("Data/working/rsn_weird_coords.csv"))
+#double checked these on the map and they are max 1.5m off. 
+
+#I am going to use the rsn_737 version since it's already archived, and change the coordinates in rsn_coords
+rsn_coords[rsn_coords == "64.713612, -148.147237"] <- "64.713614, -148.147263" # FP5C
+rsn_coords[rsn_coords == "64.998562, -147.65685"] <- "64.998563, -147.65685" #GSM5 
+rsn_coords[rsn_coords == "65.170917, -147.543548"] <- "65.170919, -147.543574" #HR1A 
+rsn_coords[rsn_coords == "64.654212, -148.281189"] <- "64.654214, -148.281215" #SL1A 
+rsn_coords[rsn_coords == "64.648267, -148.286093"] <- "64.648269, -148.286119" #SL1B 
+rsn_coords[rsn_coords == "65.153934, -147.491332"] <- "65.153934, -147.491333" #UP4C 
+
+#last double check
+common_coords <- intersect(rsn_coords$coords, rsn737$coords)
+#success! 93 values in common
+
+#save this file as the new rsn_coords in the working data file
+rsn_coords <- select(rsn_coords, -coords)
+
+write_csv(rsn_coords, file = "Data/working/rsn_coord.csv")
+
+```
+
+
+```{r 2023NewSiteNetwork}
+#this is for file 2023NewSiteNetwork
+
+#load packages
+install.packages("sf")
+install.packages("units") #had to download this so that sf would install
+#had to download udunits2 in terminal in order to install units
+library(sf)
+
+#read in the file
+RSN_siteinfo <- read.csv("737_RSN_SiteInformation.csv")
+RSN_fuel <- read.csv("762_RSN_FuelLoad_2019_clean.csv")
+RSN_site_names <- read.csv("RSN_site_names.csv")
+RSN_summ <- read.csv("2023NewSiteNetwork_Complete_SD.csv")
+RSN_summ$prelimID <- RSN_summ$Site.Name
+
+RSN_summ <- merge(RSN_summ, RSN_site_names, by = "prelimID", all=TRUE)
+RSN_summ <- select(RSN_summ, prelimID, sitename, Date, Site.Name, Fire.Name, Observers, Weather, Location.Notes, GPS.Coordinates..North., GPS.Coordinates..East., Slope..deg., Aspect..deg., Elevation..m., Comments, Topographic.Position, Site.Contour, Evidence.of.thermokarst, Water.Flux, Est.age.of.oldest.trees, Site.Moisture, Surficial.Geology, Surficial.Geomorphology, Other.Notes)
+
+RSN_summ <- RSN_summ %>%
+  filter(!is.na(Date))
+
+RSN_summ <- select(RSN_summ, sitename, Site.Name, Date, Fire.Name, Observers,              
+                   Weather, Location.Notes, GPS.Coordinates..North., GPS.Coordinates..East., Slope..deg., Aspect..deg.,          
+                   Elevation..m., Comments, Topographic.Position, Site.Contour, Evidence.of.thermokarst,
+                   Water.Flux, Est.age.of.oldest.trees, Site.Moisture, Surficial.Geology, Surficial.Geomorphology,
+                   Other.Notes)
+
+#fixing coordinates
+
+#make new column combining coordinates
+#RSN_summ <- RSN_summ %>%
+ #mutate(UTM = paste(GPS.Coordinates..North., GPS.Coordinates..East., sep = " "))
+
+RSN_summ$UTM_n <- as.numeric(RSN_summ$GPS.Coordinates..North.)
+RSN_summ$UTM_e <- as.numeric(RSN_summ$GPS.Coordinates..East.)
+utm_coords <- RSN_summ[, c("UTM_n", "UTM_e")]
+#utm_coords <- RSN_summ[, c("GPS.Coordinates..North.", "GPS.Coordinates..East.")]
+
+cleaned_utm_coords <- utm_coords[complete.cases(utm_coords$UTM_n, utm_coords$UTM_e), ]
+
+##convert to sf
+utm_coords_sf <- st_as_sf(cleaned_utm_coords, coords = c("UTM_n", "UTM_e"), crs = 32606)  # CRS for UTM Zone 06N
+
+# Transform coordinates from UTM to lat-long (WGS84)
+utm_coords_sf_transformed <- st_transform(utm_coords_sf, crs = 4326)  # CRS for WGS84
+
+# Extract transformed coordinates
+transformed_coords <- st_coordinates(utm_coords_sf_transformed)
+transformed_coords$n_dd <- transformed_coords$X
+transformed_coords$w_dd <- transformed_coords$Y
+RSN_summ <- cbind(RSN_summ, transformed_coords)
+
+
+num_sites_info <- RSN_siteinfo %>% 
+  summarise(unique_count = n_distinct(sitename))
+#n = 93
+
+num_sites_summ <- RSN_summ %>% 
+  summarise(unique_count = n_distinct(Site.Name))
+#n = 39
+
+# Compare unique values between the summ and 737
+values_summ <- RSN_summ %>% distinct(sitename)
+values_siteinfo <- RSN_siteinfo %>% distinct(sitename)
+
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_summ$sitename)
+diff_siteinfo
+#unique values (65)  
+#this means that 28 sites from RSN_summ are from RSN, the difference between 39 and 28 are 
+#sites that do not have "modern" site names
+
+diff_summ <- setdiff(values_summ$sitename, values_siteinfo$sitename)
+diff_summ
+# no unique value
+
+
+write.csv(RSN_summ, file = "2023NewSiteNetwork_Complete_SD_clean.csv")
+
+```
+
+
+```{r 604}
+#this is for file 604_RSN_Releve#
+
+#read in the file
+RSN_siteinfo <- read.csv("737_RSN_SiteInformation.csv")
+RSN_releve <- read.csv("604_RSN_Releve.csv")
+RSN_active <- read.csv("605_RSN_ActiveLayerDepths_2021.csv")
+RSN_releve$site
+
+num_sites <- RSN_releve %>% 
+  summarise(unique_count = n_distinct(site))
+#n = 84
+
+num_sites_info <- RSN_siteinfo %>% 
+  summarise(unique_count = n_distinct(sitename))
+#n = 93
+
+num_sites_active <- RSN_active %>% 
+  summarise(unique_count = n_distinct(site))
+#n = 91
+
+# Compare unique values between the 604 and 737
+values_releve <- RSN_releve %>% distinct(site)
+values_siteinfo <- RSN_siteinfo %>% distinct(sitename)
+
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_releve$site)
+diff_siteinfo
+# unique values are: "FP5A" "FP5C" "FP5D" "HR1A" "SL1A" "SL1B" "UP4A" "UP4B" "UP4C"
+
+# Compare unique values between the 605 and 737
+values_active <- RSN_active %>% distinct(site)
+values_siteinfo <- RSN_siteinfo %>% distinct(sitename)
+
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_active$site)
+diff_siteinfo
+# unique values are: "BFY1"  "BFY10" "BFY11" "BFY12" "BFY13" "BFY4"  "BFY9"  "DCY15" "DCY17" "DCY5"  "DCY7" 
+#"DCY8"  "GRI3"  "HR1A"  "UP4D"  "WDI4" 
+
+diff_active <- setdiff(values_active$site, values_siteinfo$sitename)
+diff_active
+# uniaue value is: "FP5B"
+
+write.csv(RSN_active, file = "605_RSN_ActiveLayerDepths_2021.csv")
+
+```
+
+```{r 762}
+#this is to clean up file 762_RSN_FuelLoad_2019, and make it a wide instead of long
+
+#read in the file
+RSN_fuel_load <- read.csv("762_RSN_FuelLoad_2019.csv")
+RSN_siteinfo <- read.csv("737_RSN_SiteInformation.csv")
+
+#make a unique ID so that site/transect/plot level data can be merged
+RSN_fuel_load <- RSN_fuel_load %>%
+  unite(ID, Site, Transect, Plot, sep = "_", remove = FALSE)
+
+#removed unwanted columns so that the pivor will work (?)
+RSN_fuel_load_short <- select(RSN_fuel_load, ID, FuelType, FuelLoad.kg.m2)
+
+#pivot
+RSN_fuel_load_new <- RSN_fuel_load_short %>%
+  pivot_wider(names_from = FuelType, values_from = FuelLoad.kg.m2)
+
+#re-add the columns I merged
+RSN_fuel_load <- RSN_fuel_load_new %>%
+  separate(ID, into = c("Site", "Transect", "Plot"), sep = "_")
+
+#save new clean dataset
+write.csv(RSN_fuel_load, file = "762_RSN_FuelLoad_2019_clean.csv")
+
+#check numbers of sites
+RSN_fuel_load <- read.csv("762_RSN_FuelLoad_2019_clean.csv")
+
+num_sites_info <- RSN_siteinfo %>% 
+  summarise(unique_count = n_distinct(sitename))
+#n = 93
+
+num_sites_fuel <- RSN_fuel_load %>% 
+  summarise(unique_count = n_distinct(Site))
+#n = 28
+
+# Compare unique values between the 606 and 737
+values_fuel <- RSN_fuel_load %>% distinct(Site)
+values_siteinfo <- RSN_siteinfo %>% distinct(sitename)
+
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_fuel$Site)
+diff_siteinfo
+# 65 unique values 
+
+diff_fuel <- setdiff(values_fuel$Site, values_siteinfo$sitename)
+diff_fuel
+# no unique value
+
+```
+
+```{r 783}
+#this is for file 783_denit#
+
+#read in the file
+RSN_siteinfo <- read.csv("737_RSN_SiteInformation.csv")
+RSN_denit <- read.csv("783_denit.csv")
+RSN_denit$Site
+
+num_sites_info <- RSN_siteinfo %>% 
+  summarise(unique_count = n_distinct(sitename))
+#n = 93
+
+num_sites_denit <- RSN_denit %>% 
+  summarise(unique_count = n_distinct(Site))
+#n = 46
+RSN_denit$Site
+
+# Compare unique values between the 783 and 737
+values_denit <- RSN_denit %>% distinct(Site)
+values_siteinfo <- RSN_siteinfo %>% distinct(sitename)
+
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_denit$Site)
+diff_siteinfo
+# 78 unique values 
+
+diff_denit <- setdiff(values_denit$Site, values_siteinfo$sitename)
+diff_denit
+# 31 unique values
+#this means that there are only 15 RSN sites used here
+
+```
+
+```{r tree inventory}
+#this is for file MasterInventory11.19.23. this is the tree inventory masterfile for BNZ. it was made by spencer christensen. it is not
+#officially archived anywhere, though it exists in our data google folder
+
+#read in the file
+rsn_siteinfo <- read_csv("Data/raw/737_RSN_SiteInformation.csv")
+rsn_masterinv <- read_csv("Data/raw/MasterInventory11.19.23.csv")
+
+##first some digging to understand how many of these sites are RSN sites
+num_sites_info <- rsn_siteinfo %>% 
+  summarise(unique_count = n_distinct(sitename))
+#n = 93
+
+num_sites_masterinv <- rsn_masterinv %>% 
+  summarise(unique_count = n_distinct(SITE))
+#n = 118
+
+#double check what these 118 are
+unique(rsn_masterinv$SITE)
+#looks like there might be some mispellings. let's clean them up
+rsn_masterinv$SITE <- sub("i", "I", rsn_masterinv$SITE)
+rsn_masterinv$SITE <- sub("p", "P", rsn_masterinv$SITE)
+rsn_masterinv$SITE <- sub("b", "B", rsn_masterinv$SITE)
+#now n = 115
+
+# Compare unique values between treeinv and 737
+values_masterinv <- rsn_masterinv %>% distinct(SITE)
+values_siteinfo <- rsn_siteinfo %>% distinct(sitename)
+
+#find sites in rsn_737 that are not in masterinv
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_masterinv$SITE)
+diff_siteinfo
+#5 unique values
+
+#find sites in masterinv that are not in rsn_737
+diff_masterinv <- setdiff(values_masterinv$SITE, values_siteinfo$sitename)
+diff_masterinv
+#27 unique values
+
+## we are missing tree inventory data for 5 RSN sites: DCY1, DCY10, DCT14, DCY7, HR1A
+```
+
+```{r tree inventory again}
+#this is for file TreeInventorySampleHistory_1989-2023
+
+#read in the file
+RSN_siteinfo <- read_csv("Data/raw/737_RSN_SiteInformation.csv")
+RSN_treeinv <- read_csv("Data/raw/TreeInventorySampleHistory_1989-2023.csv")
+
+num_sites_info <- RSN_siteinfo %>% 
+  summarise(unique_count = n_distinct(sitename))
+#n = 93
+
+num_sites_treeinv <- RSN_treeinv %>% 
+  summarise(unique_count = n_distinct(Site))
+#n = 118
+
+# Compare unique values between treeinv and 737
+values_treeinv <- RSN_treeinv %>% distinct(Site)
+values_siteinfo <- RSN_siteinfo %>% distinct(sitename)
+
+diff_siteinfo <- setdiff(values_siteinfo$sitename, values_treeinv$Site)
+diff_siteinfo
+#unique values 0  
+
+diff_treeinv <- setdiff(values_treeinv$Site, values_siteinfo$sitename)
+diff_treeinv
+#25 unique values
+
+```
+
+```{r tree age}
+##code to combine tree age with NewSiteNewtowk_Complete
+
+#read in file - this is the file with age from tree cores. we want to integrate it with NSN
+tree_age <- read_csv("Data/raw/tree_age.csv")
+nsn_tree_cores <- read_csv("Data/raw/nsn_tree_cores.csv")
+
+#let's clean up these files a bit
+colnames(nsn_tree_cores)
+
+#first we must get rid of all of the spaces in the column names
+colnames(nsn_tree_cores) <- gsub(" ", "_", colnames(nsn_tree_cores))
+colnames(tree_age) <- gsub(" ", "_", colnames(tree_age))
+
+nsn_tree_cores <- select(nsn_tree_cores, Date, Fire_Name, Site_Name, Observers, Weather, "Cohort_#", Species, 
+                         "Tree_#", "Ht_of_Core_(cm)", "DCH_(cm)", "DBH_(cm)", "Cookie/Core?", Condition_of_Core, 
+                         "Fire_Scar?", Age, Additional_Notes)
+nsn_tree_cores <- nsn_tree_cores[-c(679:999), ]
+
+#let's change all the column names with special characters
+nsn_tree_cores <- nsn_tree_cores %>%
+  rename(cohort = "Cohort_#", tree_num = "Tree_#", core_ht = "Ht_of_Core_(cm)", dch = "DCH_(cm)",
+  dbh = "DBH_(cm)", sample_type = "Cookie/Core?", fire_scar = "Fire_Scar?")
+
+tree_age <- tree_age %>%
+  rename(cohort = "Cohort_#", tree_num = "Tree_#", core_ht = "Ht_of_Core_(cm)", dch = "DCH_(cm)",
+         dbh = "DBH_(cm)", sample_type = "Cookie/Core?", fire_scar = "Fire_Scar?", field_notes = "Feild_Notes")
+
+####
+
+#we have a different number of rows in these two datasets - let's see what's missing
+#first let's make a unique id for both of these
+nsn_tree_cores <- nsn_tree_cores %>%
+  mutate(unique_id = paste(Site_Name, cohort, tree_num, sep = "-"))
+
+tree_age <- tree_age %>%
+  mutate(unique_id = paste(Site_Name, cohort, tree_num, sep = "-"))
+
+#find common unique_ids between the two datasets
+common_values <- intersect(nsn_tree_cores$unique_id, tree_age$unique_id)
+#we have 669 common values
+
+# Find values in unique_id in nsn_tree_cores that are not in tree_age
+unique_to_nsn <- setdiff(nsn_tree_cores$unique_id, tree_age$unique_id)
+#8 of them: "BD-1-4-1"  "BD-2-3-1"  "GR-10-4-3" "WD-8-4-1"  "WD-8-4-2"  "WD-8-4-3"  "WD-8-4-4"  "WD-8-4-5" 
+
+# Find values in unique_id in tree_age that are not in nsn
+unique_to_tree_age <- setdiff(tree_age$unique_id, nsn_tree_cores$unique_id)
+#17 of them
+#this in interesting - I did not think there were going to be any unique values in tree_age
+#on closer inspection, there's a weird site here "BD-RB". Also a weird species "CBSNBC
+
+#check to see if there is an issue with duplicates?
+unique_tree_age <- unique(tree_age$unique_id)
+unique_nsn <- unique(nsn_tree_cores$unique_id)
+
+duplicates_unique_id <- nsn_tree_cores[duplicated(nsn_tree_cores$unique_id) | duplicated(nsn_tree_cores$unique_id, fromLast = TRUE), ]
+#that doesn't seem to be the case, but did find one duplicate, in BD-1-2-1, which had two cores taken because the tree was so big
+
+###
+
+#what is the best way to combine these datasets? probably combine common values to nsn, and leave those 8 unique 
+#values as NAs
+comm_tree_age <- tree_age[tree_age$unique_id %in% common_values, ]
+
+comm_tree_age <- select(comm_tree_age, unique_id, "Times_Counted?", Age_1, Age_2, Age_3, Avg, field_notes, Counting_Notes, Age_Notes)
+
+nsn_tree_cores_all <- full_join(comm_tree_age, nsn_tree_cores, by = "unique_id")
+
+#let's clean up the rows 
+#first let's redo the average
+nsn_tree_cores_all$ave_age <- rowMeans(nsn_tree_cores_all[, c("Age_1", "Age_2", "Age_3")], na.rm = TRUE)
+nsn_tree_cores_all$ave_age <- round(nsn_tree_cores_all$ave_age, 2)
+nsn_tree_cores_all <- rename(nsn_tree_cores_all, age_count = "Times_Counted?") 
+
+nsn_tree_cores_all <- select(nsn_tree_cores_all, Date, Fire_Name, Site_Name, Observers, Weather, cohort, Species, 
+                             tree_num, core_ht, dch, dbh, sample_type, Condition_of_Core, fire_scar, age_count,
+                             Age_1, Age_2, Age_3, ave_age, field_notes, Counting_Notes, Age_Notes)
+
+#save in working data folder
+write_csv(nsn_tree_cores_all, file = "Data/working/nsn_tree_cores_all.csv")
+
+```
+
+```{r soils}
+#quick summary stats of coreprocessing2018 and core_status datafiles, to capture extent of RSN soil sampling
+
+#this is the datafile from Guelph. it seems like it has ALL permafrost cores collected
+rsn_cores <- read_csv("Data/raw/Coring_RSN_20150508.csv")
+
+#check how many sites are in this dataset
+n_distinct(rsn_cores$Site)
+#32
+
+#smush so that we have one row per core. make a core depth by taking the max number at the end of each core
+rsn_cores %>%
+  group_by(Site, Core_number) %>%
+  summarize(depth = max(Bottom_depth)) -> rsn_cores_sum
+
+#save this file
+write_csv(rsn_cores_sum, "Data/working/rsn_cores_summary.csv")
+
+#read in core_status file I have been compiling
+rsn_cores.a <- read_csv("Data/working/core_status.csv")
+
+#make a new df that has just a list of sites
+#how many distinct sites are there
+n_distinct(rsn_cores.a$site)
+#82 sites
+
+rsn_cores_by_sites <- rsn_cores.a %>%
+  group_by(site) %>%
+   summarise(
+    pf = sum(core_type == "pf", na.rm = TRUE),
+    short = sum(core_type == "short", na.rm = TRUE)) %>% 
+  mutate(analysis_pf = case_when(core_type == "pf" & analysis == "y" ~ "y"),
+    analysis_short = case_when(core_type == "short" & analysis == "y" ~ "y",
+                               core_type == "short" & analysis != "y" ~ "n"))
+
+    #pf_analysis = ifelse(all(analysis == "y" | is.na(analysis) | pf == 0), NA, ifelse(all(analysis == "y"), "y", "n")),
+   # short_analysis = ifelse(all(analysis == "y" | is.na(analysis) | short == 0), NA, ifelse(all(analysis == "y"), "y", "n")))
+
+
+rsn_cores_by_sites <- rsn_cores.a %>%
+  group_by(site) %>%
+  summarise(
+    core_types = paste(unique(core_type), collapse = ", "),  # Combine all unique core types
+    analysis_status = ifelse(all(analysis == "y" | is.na(analysis)), "y", "n"))
+
+rsn_cores.a %>%
+  group_by(site) -> test
+
+#filter by permafrost cores, count how many sites there are
+rsn_cores.a %>%
+  filter(core_type == "pf") %>%
+  summarise(num_distinct_sites = n_distinct(site)) -> test
+#33 pf core sites
+
+#filter by short cores, count how many sites there are
+rsn_cores.a %>%
+  filter(core_type == "short") %>%
+  summarise(num_distinct_sites = n_distinct(site)) -> test
+#48 short core sites
+
+#make a df with just pf
+rsn_cores.a %>% 
+  filter(core_type == "pf") -> rsn_cores_pf
+
+#make a df with just short
+rsn_cores.a %>% 
+  filter(core_type == "short") -> rsn_cores_short
+
+#make list of pf and short sites
+values_pf <- rsn_cores_pf %>% distinct(site)
+values_short <- rsn_cores_short %>% distinct(site)
+
+#find sites in pf that are not in short
+setdiff(values_pf$site, values_short$site)
+#there are 31 sites in pf that are not in short
+
+#find sites in short that are not in pf
+setdiff(values_short$site, values_pf$site)
+# there are 46 sites in short that are not in pf
+
+#check which sites are shared
+shared_sites <- intersect(rsn_cores_pf$site, rsn_cores_short$site)
+#the only two shared sites are DC33 and GS-2
+
+```
+
