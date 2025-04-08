@@ -1,11 +1,11 @@
 #Load Libraries and Data####
 load('RSN/libary_function.RData')
-library.func(libs = c('dplyr', 'tidyr', 'ggplot2', 'ggiraph', 'lubridate', 'purrr', 'htmlwidgets'))
+library.func(libs = c('dplyr', 'ggplot2', 'ggiraph', 'lubridate', 'stringr', 'tidyr'))
 
 ##Step 1: Load and Prepare Dataset##############################################
-MI <- read.csv("RSN/Data/raw/MasterInventory11.19.23.csv")
-Sps.Grw <- read.csv('RSN/Data/Informative/Species_DBH_GrowthRate.csv')
-MI.24 <- read.csv('RSN/Data/Raw/All 2024 tree data_QC_011324.csv')
+MI <- read.csv("~/NAU/RSN/Data/raw/MasterInventory11.19.23.csv")
+Sps.Grw <- read.csv('~/NAU/RSN/Data/Informative/Species_DBH_GrowthRate.csv')
+MI.24 <- read.csv('~/NAU/RSN/Data/raw/All 2024 tree data_QC_011324.csv')
 
 #Get columns ready for both data sets
 MI <- MI %>%
@@ -65,22 +65,51 @@ New.dat <- New.dat %>%
 MI <- rbind(MI, New.dat) %>% 
   arrange(UniqueID, Year)
 
-key.words <- c('now', 'new tag', 'new number', 'new #', 'was', 'old#', 'old #', 'actually', '185',
-               '238', '245', '6442', '679', '8084')
+key.words <- c('was #', 'old#', 'old #', ' 185 ',
+               ' 238 ', ' 245 ', ' 6442 ', ' 679 ', ' 8084 ')
 
 # Search for notes containing any of the keywords
 matching_notes <- MI %>%
-  filter(grepl(paste(key.words, collapse = "|"), NOTES, ignore.case = TRUE))
+  filter(grepl(paste(key.words, collapse = "|"), NOTES, ignore.case = TRUE)) %>% 
+  arrange(ReplaceID)
 
-desired.notes <- unique(matching_notes$NOTES) %>% sort()
-desired.notes2 <- desired.notes[-c(9, 18:26, 29, 31, 33:35, 39:45, 53, 59:60, 79:82, 88:89,
-                                   93:95, 98:103, 111:112, 116, 118:126, 131, 146, 152,
-                                   196:199, 202:206, 208, 329:332)]
+extract_numbers <- function(note) {
+  # Extract all numbers from the note
+  numbers <- str_extract_all(note, "\\d+")[[1]]
+  
+  # If no numbers were extracted or if '2019' is the only number, return NA
+  if(length(numbers) == 0) {
+    return(NA)  # Or return "" if you want to keep it as an empty string
+  }
+  
+  # Remove '2019' from the extracted numbers
+  numbers <- numbers[!numbers %in% c("2019","999")] %>% as.numeric()
+  
+  # Return the first number (or join them into a single string if you prefer)
+  return(numbers)  # Return only the first number (or use paste(numbers, collapse = ", ") for multiple numbers)
+}
 
-change.tag <- MI %>% 
-  filter(UniqueID %in% UniqueID[NOTES %in% desired.notes2]) %>% 
-  arrange(UniqueID, Year)
+matching_notes <- matching_notes %>% 
+  mutate(
+    OrigTree = sapply(NOTES, extract_numbers),
+  ) 
+matching_notes$OrigTree[325:326] <- 3
 
+matching_notes <- matching_notes %>% 
+  mutate(
+    OrigID = paste(SITE, PLOT, OrigTree, sep = '_')
+  )
+
+mutatetrees <- MI %>% 
+  filter(UniqueID %in% unique(matching_notes$OrigID))
+
+# Perform a left join to match `OrigID` to `UniqueID`
+mutatetrees <- MI %>% 
+  filter(UniqueID %in% unique(matching_notes$OrigID)) %>% 
+  mutate(
+    NewID = matching_notes$UniqueID[match(UniqueID, matching_notes$OrigID)]
+  )
+  
 ##Step 2: Detect Missing and Duplicate DBH values###############################
 ##Begin by identifying duplicates
 #Group by year and Unique ID to find duplicates and then identify them by order
