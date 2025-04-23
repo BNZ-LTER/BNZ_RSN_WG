@@ -22,6 +22,17 @@ library.func(c('dplyr', 'matrixStats', 'lubridate', 'tidyverse')) #Installs only
 #Original compiled masterfile in 2015
 rsn_master <- read.csv("Data/raw/737_RSN_SiteInformation.csv")
 
+#New site network masterfile
+nsn_master <- read.csv('Data/raw/NewSiteNetwork_Information.csv')
+#Clean topo
+nsn_master <- nsn_master %>% 
+  mutate(
+    Topo = TP[match(Topographic.Position, Key)]
+  )
+
+#NSN organic depth
+nsn.org <- read.csv('Data/raw/NewSiteNetwork_OrganicDepth.csv')
+
 #Organic depth layer data (better one according to Jaime)
 rsn_soils_606 <- read.csv("Data/raw/606_RSN_SoilsOL_2015.csv")
 
@@ -155,7 +166,7 @@ rsn_master <- rsn_master %>%
 ##Note: All columns from 1-9 are already filled
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####1.2.1: Topography----
+#####1.2.1: Topography---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 topo.complete <- rsn_master %>% 
@@ -167,7 +178,7 @@ topo.incomplete <- rsn_master %>%
 ##62 incomplete, 31 complete
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####1.2.2: Severity----
+#####1.2.2: Severity---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 severity.complete <- rsn_master %>% 
@@ -179,7 +190,7 @@ severity.incomplete <- rsn_master %>%
 #30 complete
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####1.2.3: Ph----
+#####1.2.3: Ph---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 ph.complete <- rsn_master %>% 
@@ -191,7 +202,7 @@ ph.incomplete <- rsn_master %>%
 #31 complete
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####1.2.4: Moisture----
+#####1.2.4: Moisture---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 moist.complete <- rsn_master %>% 
@@ -203,7 +214,7 @@ moist.incomplete <- rsn_master %>%
 ##All complete (may need to update)
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####1.2.5: Organic Soil Depth----
+#####1.2.5: Organic Soil Depth---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 org.complete <- rsn_master %>% 
@@ -246,7 +257,7 @@ compare_numeric_values <- function(df1, df2,
 ####2.2: Organic Depth Data Comparison----
 #-----------------------------------------------------#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.2.1: Short Core vs RSN Master Org----
+#####2.2.1: Short Core vs RSN Master Org---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #Short core data sheet uses prelimID site names
@@ -278,7 +289,7 @@ sum(short.joined$value_match, na.rm = TRUE) #0
                                             #Let's stick with org depth since we know replicas and std
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.2.2: RSN 606 Soil vs RSN Master Org----
+#####2.2.2: RSN 606 Soil vs RSN Master Org---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 
 #Compare common sites from original rsn master and missing sites
@@ -310,7 +321,7 @@ soil606.joined <- compare_numeric_values(df1 = org.complete, df2 = soil606.sum,
 sum(soil606.joined$value_match, na.rm = TRUE) #2
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.2.3: Short Core vs RSN 606 Soil----
+#####2.2.3: Short Core vs RSN 606 Soil---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #Compare site organic depth between short core and rsn 606
 soilshort.606.joined <- compare_numeric_values(df1 = short.core.sum, df2 = soil606.sum,
@@ -321,7 +332,7 @@ soilshort.606.joined <- compare_numeric_values(df1 = short.core.sum, df2 = soil6
 sum(soilshort.606.joined$value_match, na.rm = TRUE) #2   
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.2.4: TKN & JFSP vs RSN Master Org----
+#####2.2.4: TKN & JFSP vs RSN Master Org---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #Compare site organic depth between jfsp and rsn master orig
 jfsp.rsnmaster.joined <- compare_numeric_values(df1 = org.complete, df2 = jfsp_sitedata,
@@ -339,25 +350,85 @@ tkn.rsnmaster.joined <- compare_numeric_values(df1 = org.complete, df2 = tkn_sit
 #How many match?
 sum(jfsp.rsnmaster.joined$value_match, na.rm = TRUE) #0
 
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.2.5: NSN vs RSN Master Org---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(nsn.org$Site.Name) %in% org.complete$prelimID) #25 sites are in original
+sum(unique(nsn.org$Site.Name) %in% org.incomplete$prelimID) #2 sites fill in missing
+
+#Summarize
+nsn.org.sum <- nsn.org.cleaned %>%
+  pivot_longer(
+    cols = starts_with("Thickness"),
+    names_to = "measurement",
+    values_to = "depth"
+  ) %>%
+  group_by(Site.Name) %>%
+  summarize(
+    depth.mean = round(mean(depth, na.rm = TRUE), 2),
+    depth.rep = sum(!is.na(depth)),
+    depth.std = round(sd(depth, na.rm = TRUE), 2),
+    .groups = "drop"
+  ) %>%
+  rename(site_name = Site.Name) %>%
+  mutate(Year = 2011)
+
+#Summarize RSN 606 sol
+nsn.org.sum <- nsn.org %>% 
+  group_by(Site.Name) %>% 
+  summarize(
+    depth.mean = mean(Thickness.1, Thickness.2, Thickness.3, Thickness.4, 
+                      Thickness.5, Thickness.6, Thickness.7, Thickness.8,
+                      Thickness.9, Thickness.10, na.rm = TRUE) %>% round(2),
+    depth.rep = n(),
+    depth.std = sd(Thickness.1, Thickness.2, Thickness.3, Thickness.4, 
+                   Thickness.5, Thickness.6, Thickness.7, Thickness.8,
+                   Thickness.9, Thickness.10, na.rm = TRUE) %>% round(2),
+    ) %>% 
+  select(site_name, depth.mean, depth.rep, depth.std) %>% 
+  mutate(
+    Year = 2011
+  )
+
+#Remove characters
+nsn.org.cleaned <- nsn.org %>%
+  mutate(across(
+    starts_with("Thickness"),
+    ~ as.numeric(gsub("[^0-9.]", "", .x))  # remove non-numeric characters
+  ))
+
+#Compare site organic depth between original master and rsn 606
+soil606.joined <- compare_numeric_values(df1 = org.complete, df2 = soil606.sum,
+                                         site_col1 = 'sitename', site_col2 = 'site_name',
+                                         variable_col1 = 'sol', variable_col2 = 'depth.mean', 
+                                         tolerance = 0.10)
+
+
+
+
+#How many match?
+sum(soil606.joined$value_match, na.rm = TRUE) #2
+
 #------------------------------------------------------# 
 ####2.3: pH Data Comparison----  
 #------------------------------------------------------#
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.3.1: JFSP vs RSN Master Original----
+#####2.3.1: JFSP vs RSN Master Original---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #Compare common sites from original rsn master and missing sites
 sum(unique(jfsp_sitedata$PrelimID) %in% ph.complete$prelimID) #0/31 sites are in original
 sum(unique(jfsp_sitedata$PrelimID) %in% ph.incomplete$prelimID) #25/62 sites fill in missing
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.3.2: TKN vs RSN Master Original----
+#####2.3.2: TKN vs RSN Master Original---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #Compare common sites from original rsn master and missing sites
 sum(unique(tkn_site_level$prelimID) %in% ph.complete$prelimID) #0/31 sites are in original
 sum(unique(tkn_site_level$prelimID) %in% ph.incomplete$prelimID) #18/62 sites fill in missing
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
-#####2.3.3: TKN vs JFSP----
+#####2.3.3: TKN vs JFSP---
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
 #Compare common sites from original rsn master and missing sites
 sum(unique(tkn_site_level$prelimID) %in% jfsp_sitedata$PrelimID) #0 sites match
@@ -366,38 +437,111 @@ sum(unique(short.core.sum$Site) %in% jfsp_sitedata$PrelimID) #0 sites match
 #-------------------------------------------------------------------#
 ####2.4: Severity Data Comparison----
 #-------------------------------------------------------------------#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.4.1: JFSP vs RSN Master Original---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(jfsp_sitedata$PrelimID) %in% severity.complete$prelimID) #25/30 sites are in original
+sum(unique(jfsp_sitedata$PrelimID) %in% severity.incomplete$prelimID) #0/63 sites fill in missing
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.4.2: TKN vs RSN Master Original---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(tkn_site_level$prelimID) %in% severity.complete$prelimID) #0/30 sites are in original
+sum(unique(tkn_site_level$prelimID) %in% severity.incomplete$prelimID) #18/63 sites fill in missing
 
 
 #-------------------------------------------------------------------#
 ####2.5: Topography Data Comparison----
 #-------------------------------------------------------------------#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.5.1: JFSP vs RSN Master Original---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(jfsp_sitedata$PrelimID) %in% topo.complete$prelimID) #0/31 sites are in original
+sum(unique(jfsp_sitedata$PrelimID) %in% topo.incomplete$prelimID) #25/62 sites fill in missing
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.5.2: TKN vs RSN Master Original---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(tkn_site_level$prelimID) %in% topo.complete$prelimID) #0/31 sites are in original
+sum(unique(tkn_site_level$prelimID) %in% topo.incomplete$prelimID) #18/62 sites fill in missing
 
 
 #-------------------------------------------------------------------#
 ####2.6: Moisture Data Comparison----
 #-------------------------------------------------------------------#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.6.1: JFSP vs RSN Master Original---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(jfsp_sitedata$PrelimID) %in% moist.complete$prelimID) #0/31 sites are in original
+sum(unique(jfsp_sitedata$PrelimID) %in% moist.incomplete$prelimID) #25/62 sites fill in missing
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.6.2: TKN vs RSN Master Original---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(tkn_site_level$prelimID) %in% moist.complete$prelimID) #0/31 sites are in original
+sum(unique(tkn_site_level$prelimID) %in% mosist.incomplete$prelimID) #18/62 sites fill in missing
 
 
 #-------------------------------------------------------------------#
 ####2.7: Tree Core Data Comparison----
 #-------------------------------------------------------------------#
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.6.1: Tree age vs RSN Master Original vs others---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(tree_age$Site.Name) %in% rsn_master$prelimID) #28/93 sites are in original
 
+#Compare tree age to nsn tree
+sum(unique(tree_age$Site.Name) %in% unique(nsn_tree_cores$Site.Name))#40
+
+#Compare tree age to Terresa data
+sum(unique(tree_age$Site.Name) %in% unique(tkn_age$Site)) #0
+
+#Summarize tree age data
+#Summarize short core data sheet to get depth mean, std, replica count, and year
+tree.age.sum <- tree_age %>% 
+  group_by(Site.Name) %>% 
+  summarize(
+    pith.mean = mean(Org.Depth, na.rm = TRUE) %>% round(2),
+    pith.rep = n(),
+    pith.std = sd(Org.Depth, na.rm = TRUE) %>% round(2)
+  ) %>% 
+  select(Site, depth.mean, depth.rep, depth.std)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#####2.6.2: NSN vs RSN Master Original & Terresa---
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+#Compare common sites from original rsn master and missing sites
+sum(unique(nsn_tree_cores$Site.Name) %in% unique(nsn_tree_cores$Site.Name))#41/93
+
+#Compare tree age to Terresa data
+sum(unique(nsn_tree_cores$Site.Name) %in% unique(tkn_age$Site)) #0
 
 ############################################################-
 ###Step 3: Choose Highest Quality Data for New RSN Master----
 ############################################################-
 
+
 ##################################################-
 ###Step 4: Create Site Burn Year with Core Data----
 ##################################################-
+
 
 ##########################################################-
 ###Step 5: Complete Organic Depth with Permafrost Cores----
 ##########################################################-
 
+
 #==============================================================================#
 ##Save Data----
 #==============================================================================#
+
 
 #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++#
 #End Script----
